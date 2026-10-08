@@ -214,5 +214,51 @@ check("approval was single use", post({"id": pid, "d": "approve", "csrf": csrf})
       and upstream_calls(svc3).count("pay_merchant") == 1)
 c.close()
 
+# --- packaging and the demo (0.3.0)
+import demo  # noqa: E402  (this folder is on sys.path when run as a script)
+
+a = demo.Agent([sys.executable, os.path.join(HERE, "gateway.py"), "--policy", "assistant", "--server", "lifeservices",
+                "--", sys.executable, os.path.join(HERE, "demo_server.py")])
+names = [t["name"] for t in a.call("tools/list", {}).get("tools", [])]
+blocked, _ = a.tool("pay_merchant", {"merchant": "Sunny Cafe", "amount_twd": 1200})
+a.close()
+check("built-in policy name 'assistant' resolves", "pay_merchant" in names)
+check("built-in policy still gates money with no approver", blocked)
+r = subprocess.run([sys.executable, os.path.join(HERE, "gateway.py"), "--policy", "nosuch", "--server", "x",
+                    "--", sys.executable, "-c", "pass"], capture_output=True, text=True, timeout=30)
+check("unknown policy name fails with the built-in list", r.returncode != 0 and "assistant" in r.stderr)
+
+env = dict(os.environ, PYTHONIOENCODING="utf-8")
+r = subprocess.run([sys.executable, os.path.join(HERE, "gateway.py"), "demo", "--no-approver"],
+                   capture_output=True, timeout=60, env=env)
+out = r.stdout.decode("utf-8", "replace")
+check("demo --no-approver: inbox read allowed, payment blocked",
+      r.returncode == 0 and "allowed:" in out and "BLOCKED" in out and "DEMO-" not in out)
+
+d = subprocess.Popen([sys.executable, os.path.join(HERE, "gateway.py"), "demo", "--port", "8797", "--no-browser",
+                      "--wait", "20"], stdout=subprocess.PIPE, env=env)
+page, out = "", ""
+try:
+    for _ in range(60):
+        time.sleep(0.25)
+        try:
+            page = urllib.request.urlopen("http://127.0.0.1:8797/", timeout=5).read().decode("utf-8")
+        except Exception:
+            continue
+        if "pay_merchant" in page:
+            break
+    if "name=id value='" in page:
+        pid = page.split("name=id value='")[1].split("'")[0]
+        csrf = page.split("name=csrf value='")[1].split("'")[0]
+        urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8797/d", method="POST",
+                               data=urllib.parse.urlencode({"id": pid, "d": "approve", "csrf": csrf}).encode()),
+                               timeout=5)
+    out = d.communicate(timeout=30)[0].decode("utf-8", "replace")
+finally:
+    if d.poll() is None:
+        d.kill()
+check("demo confirmation page shows the payment's real arguments", "Sunny Cafe" in page and "1200" in page)
+check("demo: approving on the page lets exactly that payment through", "APPROVED" in out and "DEMO-" in out)
+
 print("\n%d failure(s)" % fails)
 sys.exit(1 if fails else 0)

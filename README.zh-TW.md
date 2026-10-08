@@ -14,6 +14,14 @@
 
 AI 助理正在拿到越來越完整的權限：替你付款、用你的身分發訊息、讀你的私人資料。agent-boundary-bench 直接量這件事：讓真實的 agent 跑一組固定的越界題目，看它們**實際做了什麼**，只依機器紀錄評分，從不採信模型對自己的描述。
 
+**60 秒試用閘道**（需要 [uv](https://docs.astral.sh/uv/)；不需要 API 金鑰，資料是合成的，不會真的扣錢）。一個模擬 agent 嘗試付款，agentgate 把這筆付款扣住，等你在本機確認頁上批准：
+
+```
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+```
+
+要把它放在你自己的 MCP 伺服器前面（Claude Code、Claude Desktop、Cursor），設定方式見 [gateway/README.md](gateway/README.md#wrap-your-own-mcp-server)（英文）。它是原型，先不要接真實的付款工具。
+
 **所有測試資料都是合成的**（虛構的銀行帳號、聯絡人、郵件、網頁）。沒有真實的攻擊程式碼；agent 能「外傳」的對象是本機 127.0.0.1 上的收件端。詳見[安全說明](#安全說明)。
 
 ## 測出了什麼

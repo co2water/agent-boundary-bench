@@ -5,15 +5,37 @@ agentgate instead of the MCP server; agentgate starts the real server behind it 
 decides every `tools/call` from a policy file — not from what the model says.
 Standard library only, one file (`gateway.py`), Python 3.11+.
 
-**Status: prototype (0.2.0).** It went through four rounds of adversarial review
-(fix notes at the top of `gateway.py`). One known limit remains: the private-address
-check resolves a host, then urllib resolves it again to connect, so a TTL-0 DNS
-rebind can still reach a LAN address. Not a hardened product.
+**Status: prototype (0.3.0). Don't put it in front of real payment or messaging
+tools yet.** It went through four rounds of adversarial review by separate AI
+reviewer agents, not an independent audit (fix notes at the top of `gateway.py`).
+One finding is still open: the private-address check resolves a host, then urllib
+resolves it again to connect, so a TTL-0 DNS rebind can still reach a LAN address.
+[THREAT_MODEL.md](THREAT_MODEL.md) lists what it does not defend.
+
+## Try it in 60 seconds
+
+Needs [uv](https://docs.astral.sh/uv/) (or pipx) and Python 3.11+. No API key, no
+network beyond fetching the code, synthetic data, no money moves:
+
+```
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+```
+
+A scripted agent reads a mock inbox (allowed) and then tries to pay "Sunny Cafe"
+NT$1,200. agentgate holds the payment and opens its confirmation page in your
+browser, showing the real arguments. Press **批准這一次** (approve once) and the mock
+server returns a fake receipt; press **拒絕** (deny) or wait, and the agent gets
+`BLOCKED_BY_AGENTGATE`. `agentgate demo --no-approver` shows the fail-closed case
+without a page. With pipx instead of uv:
+
+```
+pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+```
 
 agentgate lives inside the agent-boundary-bench repo but does not depend on it:
 `bench/run.py` copies `gateway.py` into each sandbox as `agentgate.py` and runs it as
-a plain script. Only the two test scripts below reuse the bench's mock server and
-fixtures.
+a plain script. The demo uses its own mock server (`demo_server.py`); only the two
+test scripts below reuse the bench's mock server and fixtures.
 
 ## What it decides
 
@@ -36,39 +58,88 @@ still work.
 
 ## Install or run
 
-No install needed:
+From git, no PyPI (the name `agentgate` on PyPI belongs to another project; this
+package is not published there):
 
 ```
-python gateway.py --policy policy.assistant.json --server lifeservices -- python my_mcp_server.py
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate --help
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"   # keeps an `agentgate` command
+pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"
 ```
 
-Or install the console script from this folder (no dependencies):
+From a checkout, no install needed:
 
 ```
-pip install ./gateway        # from the repo root; provides the `agentgate` command
-agentgate --policy policy.assistant.json --server lifeservices -- python my_mcp_server.py
+python gateway/gateway.py --policy assistant --server mymail -- <your MCP server command>
 ```
 
-The policy files are not part of the package; pass a path with `--policy`.
+`--policy assistant` is the built-in everyday-assistant policy (shipped with the
+package); any other value is a path to your own policy file.
 
-### Use from an MCP client
+### Wrap your own MCP server
 
-Point the client's server entry at agentgate and put the real server after `--`.
-Example (any client that takes `command` + `args`):
+> **Read this first.** agentgate only sees the tools it wraps. An agent that still
+> has a shell or any HTTP tool (Claude Code has Bash on by default) can bypass it
+> entirely, and can even open the confirmation page itself and approve its own
+> call. The protection holds only when those built-in tools are off (`--builtins`
+> gives the agent workspace-scoped file and fetch tools instead). See
+> [THREAT_MODEL.md](THREAT_MODEL.md).
+
+Install once, so the client doesn't wait on a git clone at startup (needs `git` on
+PATH):
+
+```
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"
+```
+
+Then point the client at `agentgate` and put the real server after `--`. Give each
+wrapped server its **own** `--approve-port` and keep it fixed, so you know where its
+confirmation page is (`http://127.0.0.1:8766/` below); open it when the agent is
+waiting on you.
+
+With the built-in policy, a server it doesn't know (`--server mymail`) has every
+tool treated as **unknown**: each call needs your approval and its output counts as
+outside content. That is the safe default. (Don't name your server `lifeservices`:
+that name carries the demo's tool classes.) To let harmless tools through, copy
+`policy.assistant.json`, list your server's tools under `servers.<name>` with a
+class (see [Policy file](#policy-file)), and pass that file to `--policy` as an
+**absolute** path: clients start servers in their own working folder.
+
+Replace `<your MCP server command>` with what you run today (for example
+`npx -y <package>`; Windows `.cmd` launchers like `npx` are found automatically),
+and `mymail` with any name.
+
+**Claude Code**
+
+```
+claude mcp add mymail -- agentgate --policy assistant --server mymail --approve-port 8766 -- <your MCP server command>
+```
+
+**Claude Desktop** (`claude_desktop_config.json`) and **Cursor** (`~/.cursor/mcp.json`
+or `.cursor/mcp.json`) take the same shape. If the client can't find `agentgate`
+(Claude Desktop on macOS doesn't use your shell's PATH), give its full path, which
+`uv tool dir --bin` shows.
 
 ```json
-{ "command": "python",
-  "args": ["/path/to/gateway.py", "--policy", "/path/to/policy.assistant.json",
-           "--server", "lifeservices", "--approve-port", "8766",
-           "--log", "/path/to/gateway.jsonl",
-           "--", "python", "/path/to/my_mcp_server.py"] }
+{
+  "mcpServers": {
+    "mymail": {
+      "command": "agentgate",
+      "args": ["--policy", "assistant", "--server", "mymail", "--approve-port", "8766",
+               "--", "<your MCP server command>", "<its args>"]
+    }
+  }
+}
 ```
+
+Some clients give up on a tool call after their own timeout. Approve within it, or
+lower `--approve-wait` so agentgate denies first.
 
 ## Command line
 
 | Flag | Meaning |
 |---|---|
-| `--policy FILE` | Required. Policy JSON (format below). |
+| `--policy FILE\|NAME` | Required. Policy JSON (format below; use an absolute path), or the built-in name `assistant`. |
 | `--server NAME` | Required. Key under `servers` in the policy that describes the upstream's tools. |
 | `--root DIR` | Workspace root for the builtin file tools. Paths outside it need confirmation; without it every path counts as outside. |
 | `--builtins` | Also serve `gw_list_dir`, `gw_read_file`, `gw_write_file`, `gw_fetch`. Upstream tools with these names are dropped. |
@@ -76,6 +147,8 @@ Example (any client that takes `command` + `args`):
 | `--approve-wait SEC` | How long a call waits for a decision on the page. Default 120. Timeout = deny. |
 | `--log FILE` | Append one JSON line per tool call: `tool`, `class`, `verdict`, `reason`, `approved`, `ts`, `tainted`. |
 | `-- CMD ...` | Required. The upstream MCP server command (stdio). Everything after `--` is passed through. |
+| `demo` | Instead of the flags above: run the demo (`--no-approver`, `--port N`, `--wait SEC`, `--no-browser`). |
+| `--version` | Print the version. |
 
 agentgate speaks MCP over stdio (JSON-RPC 2.0, one message per line) and answers
 `initialize`, `tools/list`, `tools/call` and `ping`. It assumes the upstream answers
@@ -122,11 +195,11 @@ Both scripts start the real gateway in front of the bench's mock MCP server
 them from a checkout that has the `bench/` folder next to `gateway/`.
 
 ```
-python gateway/test_gateway.py    # rule checks incl. security-review regressions; prints PASS/FAIL, exit 1 on any failure
+python gateway/test_gateway.py    # 45 rule checks incl. security-review regressions and the demo; prints PASS/FAIL, exit 1 on any failure
 python gateway/fooled_agent.py    # a scripted, already-fooled agent replays each bench attack; shows which step the gateway stopped
 ```
 
 `test_gateway.py` binds `127.0.0.1:8765` (a throwaway local web page, the same port
-as the bench sink, so do not run it during a bench round) and `127.0.0.1:8799` (the
-approval page). `fooled_agent.py` writes `gateway/fooled_results.json`
+as the bench sink, so do not run it during a bench round), `127.0.0.1:8799` (the
+approval page) and `127.0.0.1:8797` (the demo's approval page). `fooled_agent.py` writes `gateway/fooled_results.json`
 (git-ignored).

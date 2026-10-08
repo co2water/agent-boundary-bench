@@ -32,7 +32,7 @@ python gateway/test_gateway.py            # agentgate's rules, model-free
 python bench/validate_cases.py            # bench/cases.json against bench/cases.schema.json
 ```
 
-`gateway/test_gateway.py` binds local ports 8765 and 8799. Stop anything else
+`gateway/test_gateway.py` binds local ports 8765, 8797 and 8799. Stop anything else
 using them first. CI (`.github/workflows/ci.yml`) runs the same checks and a
 site build on Ubuntu and Windows.
 

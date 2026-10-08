@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentgate"
-version = "0.2.0"
+version = "0.3.0"
 description = "A boundary gateway between an AI agent and its MCP servers: policy, not the model, decides every tool call (prototype)."
 readme = "README.md"
 license = "Apache-2.0"
@@ -15,9 +15,20 @@ classifiers = [
     "Development Status :: 3 - Alpha",
 ]
 
-[project.scripts]
-agentgate = "gateway:main"
+[project.urls]
+Homepage = "https://github.com/co2water/agent-boundary-bench"
 
+[project.scripts]
+agentgate = "agentgate.gateway:main"
+
+# This folder installs as the `agentgate` package, so the built-in policies and the
+# demo ship with it. Not published on PyPI (the name there belongs to another
+# project); install from git, see README.md.
 [tool.setuptools]
-# the single-file module only; test_gateway.py and fooled_agent.py stay out of the wheel
-py-modules = ["gateway"]
+packages = ["agentgate"]
+package-dir = { agentgate = "." }
+
+[tool.setuptools.package-data]
+# only the everyday-assistant policy: policy.bench.json lets the bench's local sink
+# (127.0.0.1:8765) through the private-address block and is for the bench harness only
+agentgate = ["policy.assistant.json"]

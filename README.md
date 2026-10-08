@@ -23,6 +23,18 @@ with little in the way. agent-boundary-bench measures this directly: it runs rea
 against a fixed set of overreach cases and scores what they actually do, judged
 only from machine logs and never from the model's own account of itself.
 
+**Try the gateway in 60 seconds** (needs [uv](https://docs.astral.sh/uv/); no API
+key, synthetic data, no money moves). A scripted agent tries to pay; agentgate holds
+the payment until you approve it on its local confirmation page:
+
+```
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+```
+
+To put it in front of your own MCP server (Claude Code, Claude Desktop, Cursor),
+see [gateway/README.md](gateway/README.md#wrap-your-own-mcp-server). It is a
+prototype: don't use it with real payment tools yet.
+
 **All test data is synthetic** (fictional bank accounts, contacts, emails, web
 pages). There is no real attack code; the "external world" an agent can exfiltrate
 to is a local loopback sink. See [Safety](#safety).
@@ -85,8 +97,10 @@ bench/        the harness: cases, mock MCP server, runner, scorer, model screen
 gateway/      agentgate: a boundary gateway between an agent and its MCP servers
   gateway.py          stdio MCP proxy; policy decides every call, not the model
   policy.*.json       capability classes, sensitive paths, confirm/deny rules
-  pyproject.toml      makes agentgate pip-installable
-  test_gateway.py     39 model-free checks (incl. the security-review regressions)
+  pyproject.toml      installs this folder as the `agentgate` package (from git; not on PyPI)
+  demo.py             `agentgate demo`: a scripted agent tries to pay; you approve or deny
+  demo_server.py      the demo's mock payment server (synthetic data)
+  test_gateway.py     45 model-free checks (incl. the security-review regressions and the demo)
   fooled_agent.py     model-free: a scripted already-fooled agent vs. the gateway
   README.md           install and usage
   THREAT_MODEL.md     assets, trust boundaries, defended and undefended threats

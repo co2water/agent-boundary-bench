@@ -2,6 +2,10 @@
 
     python gateway.py --policy policy.json --server lifeservices [--root DIR] [--builtins]
                       [--approve-port 8766] [--log gateway.jsonl] -- <upstream command...>
+    python gateway.py demo [--no-approver]      (see demo.py)
+
+--policy takes a file path or the built-in name "assistant" (policy.assistant.json,
+shipped with the package).
 
 The agent launches this instead of the MCP server. Every tools/call is decided
 by policy, not by the model:
@@ -44,6 +48,7 @@ import json
 import os
 import re
 import secrets
+import shutil
 import socket
 import subprocess
 import sys
@@ -57,6 +62,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 CLASS_ZH = {"query": "查詢類", "data": "資料類", "comms": "通訊類", "money": "交易類", "exec": "執行類"}
 MAX_LINE = 4 * 1024 * 1024
+VERSION = "0.3.0"
+HERE = os.path.dirname(os.path.abspath(__file__))
 
 BUILTIN_TOOLS = {
     "gw_list_dir": {
@@ -113,7 +120,7 @@ class Gate:
                                    env=dict(os.environ, BENCH_RUN=os.environ.get("BENCH_RUN", "")))
         self.up_id = 0
         self._up_call("initialize", {"protocolVersion": "2025-06-18", "capabilities": {},
-                                     "clientInfo": {"name": "agentgate", "version": "0.2.0"}})
+                                     "clientInfo": {"name": "agentgate", "version": VERSION}})
         self._up_send({"jsonrpc": "2.0", "method": "notifications/initialized"})
         tools = self._up_call("tools/list", {}).get("tools", [])
         # a builtin name always means the builtin; upstream may not shadow or duplicate it
@@ -374,7 +381,7 @@ class Gate:
                 f.write(args["content"])
             return "written %d chars" % len(args["content"])
         if name == "gw_fetch":
-            req = urllib.request.Request(str(args["url"]), method="GET", headers={"User-Agent": "agentgate/0.2"})
+            req = urllib.request.Request(str(args["url"]), method="GET", headers={"User-Agent": "agentgate/" + VERSION})
             with self._opener().open(req, timeout=15) as r:
                 raw = r.read(300000).decode("utf-8", "replace")
             self.visited_hosts.add(self._host(args["url"]))
@@ -488,7 +495,7 @@ class Gate:
                 if method == "initialize":
                     reply(id_, {"protocolVersion": params.get("protocolVersion", "2025-06-18"),
                                 "capabilities": {"tools": {}},
-                                "serverInfo": {"name": "agentgate", "version": "0.2.0"}})
+                                "serverInfo": {"name": "agentgate", "version": VERSION}})
                 elif method == "tools/list":
                     reply(id_, {"tools": self.list_tools()})
                 elif method == "tools/call":
@@ -508,9 +515,27 @@ class Gate:
             self.up.kill()
 
 
+def resolve_policy(p):
+    """A path, or a built-in name (policy.<name>.json next to this file, shipped with the package)."""
+    if os.path.isfile(p) or not re.fullmatch(r"[a-z][a-z0-9_-]*", p):
+        return p
+    builtin = os.path.join(HERE, "policy.%s.json" % p)
+    if os.path.isfile(builtin):
+        return builtin
+    sys.exit("no policy file %r and no built-in policy of that name (built-in: assistant). "
+             "MCP clients start servers in their own working folder: give a custom policy as an absolute path." % p)
+
+
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--policy", required=True)
+    if sys.argv[1:2] == ["demo"]:
+        if __package__:
+            from . import demo  # installed: the agentgate package
+        else:
+            import demo  # repo checkout: python gateway/gateway.py demo
+        sys.exit(demo.run(sys.argv[2:]))
+    ap = argparse.ArgumentParser(prog="agentgate", epilog="Try it first: agentgate demo")
+    ap.add_argument("--version", action="version", version="agentgate " + VERSION)
+    ap.add_argument("--policy", required=True, help='policy file, or a built-in name: "assistant"')
     ap.add_argument("--server", required=True, help="key under policy.servers for the upstream's tools")
     ap.add_argument("--root", help="workspace root for builtin file tools")
     ap.add_argument("--builtins", action="store_true")
@@ -523,6 +548,11 @@ def main():
         a.upstream = a.upstream[1:]
     if not a.upstream:
         sys.exit("upstream command missing (after --)")
+    a.policy = resolve_policy(a.policy)
+    if not os.path.isfile(a.policy):
+        sys.exit("policy file not found: %r (use an absolute path, or the built-in name: assistant)" % a.policy)
+    # Windows: npx, uvx and other .cmd shims only start through their resolved path
+    a.upstream[0] = shutil.which(a.upstream[0]) or a.upstream[0]
     Gate(a).serve()
 
 

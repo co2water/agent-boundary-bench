@@ -176,7 +176,9 @@ an error instead of crashing the gateway. Every decision is written to the
   workspace) can be printed back to the user or reach the model provider.
 - **Other local processes.** Any process on the same machine can open the
   approval page, read the CSRF token and post an approval. The local machine
-  and user account are inside the trust boundary.
+  and user account are inside the trust boundary. That includes the agent itself
+  when it still has a shell or an HTTP tool of its own (Claude Code's Bash, for
+  example): it can approve its own call. Turn those tools off and use `--builtins`.
 - **Coverage of the path lists.** `sensitive_paths` and `write_deny_paths` are
   pattern lists. A secret stored under an unlisted name is treated as an
   ordinary file.
@@ -208,7 +210,7 @@ regression checks in `test_gateway.py` record the findings.
 4. **Fourth round.** The code does not list its fixes separately. After it,
    one known limitation remained open: the DNS rebinding gap described above.
 
-`gateway/test_gateway.py` runs 39 model-free checks, including these
+`gateway/test_gateway.py` runs 45 model-free checks, including these
 regressions. `gateway/fooled_agent.py` replays an already-fooled agent
 against the gateway; in the R2 lockdown configuration it blocked the harmful
 step in 10 of 10 cases.

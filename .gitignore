@@ -34,3 +34,8 @@ Thumbs.db
 
 # GitHub Pages build output
 _site/
+
+# Python packaging leftovers (uv build / pip install of gateway/)
+build/
+*.egg-info/
+dist/

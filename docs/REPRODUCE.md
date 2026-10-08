@@ -126,8 +126,11 @@ The manifest drops any variable or argument whose name contains KEY, TOKEN, SECR
 or PASSWORD. To see what a run would record, without writing anything, run
 `python bench/manifest.py`.
 
-When you report a result, include `manifest.json`. The R3 runs used these
-gateway and policy files. They are unchanged at the commit that added this page:
+When you report a result, include `manifest.json`. The R2 and R3 runs used these
+gateway and policy files. agentgate 0.3.0 (tag `agentgate-v0.3.0`) changed
+`gateway/gateway.py` (version strings, the command line, the demo, and starting
+Windows `.cmd` upstreams; the decision code is unchanged), so its hash differs. For
+a byte-exact R2/R3 gateway, check out the public commit before that tag:
 
 ```
 ee38e8d9e908b2efa2bc7b5f25d48f67fc2778f1ff41b721d98abf1edf754ddd  gateway/gateway.py
