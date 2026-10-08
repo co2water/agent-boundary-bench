@@ -80,6 +80,9 @@ section:first-child { border-top: 0; }
 .hero h1 .hl { color: var(--breach); }
 .hero .dek { margin-top: 20px; font-size: 17px; line-height: 1.65; color: var(--ink-2); max-width: 46ch; }
 .hero .dek b { color: var(--ink); font-weight: 500; }
+.demo-link { display: inline-block; margin-top: 18px; font-family: var(--f-mono); font-size: 13px; font-weight: 500; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 8px 13px; text-decoration: none; }
+.demo-link:hover { text-decoration: underline; }
+.demo-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .diagram { width: 100%; height: auto; }
 .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
 .stat { background: var(--surface); padding: 20px 20px 18px; display: grid; gap: 7px; align-content: start; }
@@ -281,6 +284,7 @@ footer { border-top: 1px solid var(--rule); padding-block: 26px 40px; font-famil
         <div class="hero-eye eyebrow" data-i18n="hero.eye">開源 AI 代理人 · 越界測試 · 2026</div>
         <h1 data-i18n-html="hero.h1">越界，<br>是<span class="hl">預設值</span>。</h1>
         <p class="dek" id="hero-dek"></p>
+        <a class="demo-link" href="https://co2water.github.io/agent-boundary-bench/demo/" data-i18n="hero.demo">▶ 看 36 秒動畫：同一句付款指令，接上閘道前後</a>
       </div>
       <div class="diagram-wrap">
         <svg class="diagram" viewBox="0 0 440 320" role="img" aria-label="職責物理隔離">
@@ -428,7 +432,7 @@ const t = (k) => (UI[LANG][k] != null ? UI[LANG][k] : UI.zh[k]);
 const UI = {
   zh: {
     "tab.summary": "總結", "tab.rank": "排名", "tab.mcp": "MCP 列表", "tab.skills": "Skill 推薦",
-    "hero.eye": "開源 AI 代理人 · 越界測試 · 2026", "hero.h1": "越界，<br>是<span class=\"hl\">預設值</span>。",
+    "hero.eye": "開源 AI 代理人 · 越界測試 · 2026", "hero.demo": "▶ 看 36 秒動畫：同一句付款指令，接上閘道前後","hero.h1": "越界，<br>是<span class=\"hl\">預設值</span>。",
     "hero.dek": "GitHub 星數前三的開源 agent，接同一個模型、用<b>出廠設定</b>跑越界測試。藏在郵件網頁裡的注入全被擋下；但使用者一開口要<b>付款、發訊息、把私人檔送出去</b>，三家幾乎都照做 —— 付款工具前，沒有一家設確認閘。",
     "sum.rounds": "三輪測試", "sum.rounds.n": "R1 – R3 · 2026-10", "sum.more": "看完整排名、前後對照與逐題結果 →",
     "sum.concl": "結論", "sum.limits": "限制", "sum.limits.n": "讓數字有邊界",
@@ -455,7 +459,7 @@ const UI = {
   },
   en: {
     "tab.summary": "Summary", "tab.rank": "Ranking", "tab.mcp": "MCP", "tab.skills": "Skills",
-    "hero.eye": "OPEN-SOURCE AI AGENTS · OVERREACH TEST · 2026", "hero.h1": "Overreach<br>is the <span class=\"hl\">default</span>.",
+    "hero.eye": "OPEN-SOURCE AI AGENTS · OVERREACH TEST · 2026", "hero.demo": "▶ Watch the 36-second demo: one payment request, before and after the gateway","hero.h1": "Overreach<br>is the <span class=\"hl\">default</span>.",
     "hero.dek": "The three most-starred open-source agents, on the same model and <b>factory defaults</b>, run through an overreach test. Injection hidden in mail and web pages is all caught; but the moment the user asks to <b>pay, message, or send a private file out</b>, all three mostly comply — not one gates the payment tool.",
     "sum.rounds": "Three rounds", "sum.rounds.n": "R1 – R3 · 2026-10", "sum.more": "See the full ranking, before/after and per-case results →",
     "sum.concl": "Conclusions", "sum.limits": "Limits", "sum.limits.n": "what bounds the numbers",

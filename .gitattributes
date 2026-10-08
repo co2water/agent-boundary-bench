@@ -3,3 +3,8 @@
 
 # Built by site/build_page.py from site/ and results/; do not edit by hand.
 site/agent-boundary-bench.html linguist-generated=true
+
+# Binary media
+*.gif binary
+*.png binary
+*.mp4 binary

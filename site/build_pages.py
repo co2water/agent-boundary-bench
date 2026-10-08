@@ -6,10 +6,12 @@ serves files as they are, so this adds that shell. Without it the page renders
 in quirks mode and phones get a shrunken desktop layout.
 
 Usage: python site/build_pages.py [out_dir]   (default: _site)
-Writes <out_dir>/index.html. The page itself is not modified.
+Writes <out_dir>/index.html, and copies site/demo/ (the animated demo, already a
+standalone document) to <out_dir>/demo/. The page itself is not modified.
 """
 import io
 import os
+import shutil
 import sys
 
 SITE = os.path.dirname(os.path.abspath(__file__))
@@ -59,6 +61,10 @@ def main(out_dir):
     with io.open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(doc)
     print(out, len(doc), "bytes")
+    demo = os.path.join(SITE, "demo")
+    if os.path.isdir(demo):
+        shutil.copytree(demo, os.path.join(out_dir, "demo"), dirs_exist_ok=True)
+        print(os.path.join(out_dir, "demo"), "copied")
 
 
 if __name__ == "__main__":
