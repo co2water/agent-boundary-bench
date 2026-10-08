@@ -1,8 +1,9 @@
 # Release checklist
 
 Every item must be done before any public release: a public repository, a
-public page, a talk, or a package upload. Status today: **prepared for a
-first GitHub push; licensed Apache-2.0.**
+public page, a talk, or a package upload. Status today: **published
+2026-10-08 (public GitHub repository and GitHub Pages results page);
+licensed Apache-2.0.**
 
 ## Blockers
 
@@ -62,7 +63,9 @@ produce the work. Record who reviewed what, and when.
 
 ## Repository hygiene
 
-- [ ] **Squash history into a clean public branch.** Start the public branch
+- [x] **Squash history into a clean public branch.** Done 2026-10-08: remote
+      `main` starts from one squashed commit; later changes are added on top
+      with `git commit-tree`, never force-pushed. Start the public branch
       from one reviewed commit. Do not publish the private history. Re-run
       the privacy review on the squashed tree.
 - [ ] **No private artifact links.** No links to private documents, shared
@@ -79,7 +82,7 @@ produce the work. Record who reviewed what, and when.
 - [ ] All tests pass on a clean checkout:
       `python -m unittest discover -s tests -v`,
       `python gateway/test_gateway.py`, `python bench/validate_cases.py`.
-- [ ] CI is green on Ubuntu and Windows.
+- [x] CI is green on Ubuntu and Windows.
 - [ ] `docs/REPRODUCE.md` works on a clean machine, at least through
       `scripts/setup.* --dry-run` and the model-free checks.
 - [ ] **Regenerate the site from data.** Run `site/build_page.py` on the
@@ -89,4 +92,4 @@ produce the work. Record who reviewed what, and when.
       safe: `bench/score.py` keeps the held-by-harness attribution already in
       `summary.json` when a transcript is missing (verified: all five rounds
       re-score identically without transcripts).
-- [ ] The README "Status" note is updated to match the release.
+- [x] The README "Status" note is updated to match the release.

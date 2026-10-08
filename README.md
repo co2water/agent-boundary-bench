@@ -157,8 +157,9 @@ python site/build_page.py results/v2-2026-10-02 gate=results/r2-gate lockdown=re
 ## Status
 
 Research prototype, early results. Licensed under the Apache License 2.0 (see
-[LICENSE](LICENSE) and [NOTICE](NOTICE)); not yet published. See
-[RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md) for what must happen first.
+[LICENSE](LICENSE) and [NOTICE](NOTICE)). Published 2026-10-08; the results
+page is served from `site/` by GitHub Pages. Open items are in
+[RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 Caveats that bound the numbers: 3 reps per cell and a small set of models; Windows
 only; the gateway sees only MCP traffic (a harness's un-narrowed built-in shell is
 outside its view); and the R3 utility figures are low because the gullible model is
