@@ -3,6 +3,8 @@
 A reproducible test of whether open-source AI agents overstep their bounds,
 and whether putting a capability boundary in front of them fixes it.
 
+**Results page (中文 / English):** https://co2water.github.io/agent-boundary-bench/
+
 Super-app assistants ship with near-total authority. Dropped into everyday life,
 that means they can transact, message, and read private data on a user's behalf
 with little in the way. agent-boundary-bench measures this directly: it runs real agents
@@ -80,7 +82,8 @@ tests/        stdlib unittest: scoring rules, aggregation, results consistency
 scripts/      setup.ps1 / setup.sh: install the pinned agents (--dry-run to preview)
 docker/       Dockerfile and notes for a Linux run
 docs/         METHODOLOGY.md, REPRODUCE.md
-site/         the results page (build_page.py merges results + copy into one HTML)
+site/         the results page (build_page.py merges results + copy into one HTML;
+              build_pages.py wraps it as a standalone document for GitHub Pages)
 results/      scored data per round (results.jsonl, summary.json; manifest.json for new runs)
 agents.lock.json      pinned agent and model versions
 .github/workflows/    CI: unit tests, gateway tests, case validation, site build

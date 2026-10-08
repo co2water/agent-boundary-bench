@@ -31,3 +31,6 @@ Thumbs.db
 
 # Claude Code worktrees / local session files
 .claude/
+
+# GitHub Pages build output
+_site/
