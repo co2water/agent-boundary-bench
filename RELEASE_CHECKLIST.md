@@ -13,9 +13,10 @@ licensed Apache-2.0.**
       without waiting for a separate legal opinion.
 - [x] **Choose a license.** Apache-2.0 for the code (2026-10-08): `LICENSE`
       (canonical text, MD5 3b83ef96387f14655fc854ddc3c6bd57) and `NOTICE`.
-- [ ] **Data and copy license.** Decide whether `results/` and the site copy
-      also use Apache-2.0 or a content license such as CC BY 4.0. Until then
-      the repository-wide Apache-2.0 applies.
+- [x] **Data and copy license.** CC BY 4.0 for `results/` and the site copy
+      and data (2026-10-08): `LICENSE-CC-BY-4.0` (official text from
+      creativecommons.org, MD5 2ab724713fdaf49e4523c4503bfd068d); `NOTICE`
+      lists the covered files. Code stays Apache-2.0.
 - [x] **Security contact** in `SECURITY.md`: GitHub private vulnerability
       reporting (enable it in the repository settings after the first push).
 

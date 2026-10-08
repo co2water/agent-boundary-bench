@@ -1,9 +1,11 @@
 # Contributing
 
-This repo is a research prototype, licensed under the Apache License 2.0 and
-not yet published (see [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)). By
-contributing you agree your contribution is licensed under the same terms
-(Apache-2.0, section 5).
+This repo is a research prototype. Code and documentation are licensed under
+the Apache License 2.0; benchmark data (`results/`) and the results-page copy
+and data (`site/data/` and the JSON copy files in `site/`) are licensed under
+CC BY 4.0. [NOTICE](NOTICE) lists exactly which files fall under each. By
+contributing you agree your contribution is licensed under the license that
+covers the files you change (Apache-2.0 section 5, or CC BY 4.0).
 
 ## Development setup
 

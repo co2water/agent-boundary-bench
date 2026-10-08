@@ -156,8 +156,11 @@ python site/build_page.py results/v2-2026-10-02 gate=results/r2-gate lockdown=re
 
 ## Status
 
-Research prototype, early results. Licensed under the Apache License 2.0 (see
-[LICENSE](LICENSE) and [NOTICE](NOTICE)). Published 2026-10-08; the results
+Research prototype, early results. Code and docs are licensed under the Apache
+License 2.0 ([LICENSE](LICENSE)); benchmark data (`results/`) and the
+results-page copy and data are licensed under CC BY 4.0
+([LICENSE-CC-BY-4.0](LICENSE-CC-BY-4.0)). [NOTICE](NOTICE) lists which files
+fall under each and how to attribute. Published 2026-10-08; the results
 page is served from `site/` by GitHub Pages. Open items are in
 [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 Caveats that bound the numbers: 3 reps per cell and a small set of models; Windows

@@ -1,7 +1,24 @@
 agent-boundary-bench
 Copyright 2026 co2water
 
-This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+The code and documentation are licensed under the Apache License, Version 2.0
+(see LICENSE). This covers everything not listed below, including the harness,
+the gateway, the test fixtures, the page template and the build scripts.
+
+The benchmark data and the results-page copy are licensed under Creative
+Commons Attribution 4.0 International (CC BY 4.0, see LICENSE-CC-BY-4.0):
+
+  results/
+  site/data/
+  site/narrative.json, site/r2.json, site/mcp_page.json, site/skills_page.json
+  the text and data of the built results page (site/agent-boundary-bench.html
+  and https://co2water.github.io/agent-boundary-bench/); its code stays
+  Apache-2.0
+
+Suggested attribution: "agent-boundary-bench by co2water, CC BY 4.0,
+https://github.com/co2water/agent-boundary-bench". Versions of these files
+published before 2026-10-08 were released under Apache-2.0 and remain
+available under it.
 
 It includes no third-party source code. The agents it tests (OpenClaw, Hermes
 Agent, DeepSeek Harness) are installed separately under their own licenses and

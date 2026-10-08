@@ -30,6 +30,7 @@ SHELL_HEAD = """<!doctype html>
 <meta property="og:description" content="{desc}">
 <meta name="twitter:card" content="summary">
 <link rel="source" href="{repo}">
+<link rel="license" href="https://creativecommons.org/licenses/by/4.0/">
 <style>
 /* the reset a host shell would otherwise provide */
 :root {{ padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }}

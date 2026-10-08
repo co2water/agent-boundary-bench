@@ -264,7 +264,7 @@
       ]
     }
   ],
-  "footer": "R1 · 2026-10-02 ／ R2–R3 · 2026-10-04 · 測試框架、閘道原型與評分資料都在 GitHub repo 的 results/；逐字紀錄（runs/）含本機路徑，未公開。",
+  "footer": "R1 · 2026-10-02 ／ R2–R3 · 2026-10-04 · 測試框架、閘道原型與評分資料都在 GitHub repo 的 results/；逐字紀錄（runs/）含本機路徑，未公開。資料與文案採 CC BY 4.0，程式碼採 Apache-2.0。",
   "summary": {
     "thesis": "問題：超級 App 的 agent 幾乎全權授權，落到日常生活裡會產生交易、越界取資料的風險。這個專案用一套可重現的測試，量出「開源 agent 在出廠設定下會不會越界」，再驗證「把能力按類別隔離、加上邊界閘道」能不能補上。",
     "rounds": [
@@ -340,5 +340,5 @@
     ]
   },
   "lede_en": "The three most-starred open-source agents, on the same model and factory defaults, run through an overreach test. Attacks hidden in mail, web pages and files are all caught — but the moment the user asks to pay, message, or send a private file out, all three mostly comply. None of them gates the payment tool.",
-  "footer_en": "R1 · 2026-10-02 / R2–R3 · 2026-10-04 · The harness, gateway prototype and scored data are in the GitHub repo under results/; per-run transcripts (runs/) contain local paths and are not published."
+  "footer_en": "R1 · 2026-10-02 / R2–R3 · 2026-10-04 · The harness, gateway prototype and scored data are in the GitHub repo under results/; per-run transcripts (runs/) contain local paths and are not published. Data and copy: CC BY 4.0; code: Apache-2.0."
 }
