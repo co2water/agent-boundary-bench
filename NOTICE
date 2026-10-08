@@ -14,13 +14,16 @@ Commons Attribution 4.0 International (CC BY 4.0, see LICENSE-CC-BY-4.0):
   the text and data of the built results page (site/agent-boundary-bench.html
   and https://co2water.github.io/agent-boundary-bench/); its code stays
   Apache-2.0
-  the text and data of the animated demo (site/demo/) and its rendering
-  docs/media/agent-boundary-bench-demo-en.gif; the demo's code stays Apache-2.0
+  the text and data of the animated demo (site/demo/) and its renderings in
+  docs/media/; the demo's code stays Apache-2.0
 
 Suggested attribution: "agent-boundary-bench by co2water, CC BY 4.0,
 https://github.com/co2water/agent-boundary-bench". Versions of these files
 published before 2026-10-08 were released under Apache-2.0 and remain
 available under it.
+
+README.md and README.zh-TW.md (the Chinese overview) are documentation and
+stay Apache-2.0.
 
 It includes no third-party source code. The agents it tests (OpenClaw, Hermes
 Agent, DeepSeek Harness) are installed separately under their own licenses and

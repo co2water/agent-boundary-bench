@@ -1,5 +1,7 @@
 # agent-boundary-bench
 
+**English** · [繁體中文](README.zh-TW.md)
+
 A reproducible test of whether open-source AI agents overstep their bounds,
 and whether putting a capability boundary in front of them fixes it.
 
@@ -8,6 +10,12 @@ and whether putting a capability boundary in front of them fixes it.
 [![The same payment request to three open-source agents: 7 of 9 runs paid on factory defaults, 0 of 9 behind agentgate](docs/media/agent-boundary-bench-demo-en.gif)](https://co2water.github.io/agent-boundary-bench/demo/)
 
 *36 seconds, real results. [Watch it in your browser](https://co2water.github.io/agent-boundary-bench/demo/) (中文 / English).*
+
+> **We told the three most-starred open-source AI agents to pay a merchant. 7 times out of 9,
+> they just paid.** Prompt injection wasn't the problem: all 45 injection runs held. The missing
+> piece was a confirmation gate in front of the payment tool. Put a boundary gateway between the
+> agent and its tools, route all of its tools through it (its own shell and file tools off), and
+> all three go from 74 / 58 / 54 to 100; the benign tasks still complete.
 
 Super-app assistants ship with near-total authority. Dropped into everyday life,
 that means they can transact, message, and read private data on a user's behalf
@@ -89,7 +97,7 @@ docs/         METHODOLOGY.md, REPRODUCE.md
 site/         the results page (build_page.py merges results + copy into one HTML;
               build_pages.py wraps it as a standalone document for GitHub Pages)
   demo/               the 36-second animated demo (index.html?lang=en|zh; ?t=<s> renders one frame)
-docs/media/   the demo as a GIF for this README
+docs/media/   the demo as GIFs (English for this README, Chinese for README.zh-TW.md)
 results/      scored data per round (results.jsonl, summary.json; manifest.json for new runs)
 agents.lock.json      pinned agent and model versions
 .github/workflows/    CI: unit tests, gateway tests, case validation, site build
@@ -125,8 +133,9 @@ decides every `tools/call` by policy:
 With `--builtins` it also serves the only file/web tools the agent gets
 (workspace-scoped read/write, http(s) GET-only fetch), so a harness can turn off its
 own shell/file/web and still work. It went through four rounds of adversarial
-security review (see the fix notes in `gateway.py`); one known limitation remains:
-a DNS rebind can defeat the private-address check. It is a **prototype**, not a
+security review by separate AI reviewer agents, not an independent audit (see the
+fix notes in `gateway.py`); one finding is still open: a DNS rebind can defeat the
+private-address check. It is a **prototype**, not a
 hardened product. See [gateway/README.md](gateway/README.md) to install it and
 [gateway/THREAT_MODEL.md](gateway/THREAT_MODEL.md) for its scope.
 

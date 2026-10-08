@@ -186,7 +186,8 @@ an error instead of crashing the gateway. Every decision is written to the
 ## Review history
 
 Before R2, the gateway went through four rounds of adversarial security
-review. The fix notes at the top of `gateway.py` and the `R*`-labelled
+review by separate AI reviewer agents with a fresh context (not an independent
+human audit). The fix notes at the top of `gateway.py` and the `R*`-labelled
 regression checks in `test_gateway.py` record the findings.
 
 1. **First review (2026-10-03).** Fixed: `file://` URLs in fetch; cross-site
