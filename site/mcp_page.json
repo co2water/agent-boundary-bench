@@ -63,6 +63,7 @@
       "title": "DeepSeek Harness：用獨立 profile 隔開（未實測）",
       "body": "MCP 工具呼叫預設直接放行，文件沒有提供針對 MCP 工具的批准設定。做法是不要把交易類、通訊類伺服器掛在日常用的 profile，另外建一個 profile 專門使用。",
       "code": "dsh wallet --from-default-profile web   # 建立獨立 profile，只在這裡掛交易類 MCP",
+      "code_en": "dsh wallet --from-default-profile web   # create a separate profile; attach money-class MCP servers only here",
       "title_en": "DeepSeek Harness: isolate with a separate profile (not tested)",
       "body_en": "MCP tool calls pass by default and the docs offer no approval setting for MCP tools. The approach is to keep money- and comms-class servers off the everyday profile and create a separate profile for them."
     },

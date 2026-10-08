@@ -683,7 +683,7 @@ function renderMcp() {
   chips($("mcp-filter"), [["all", t("all")]].concat(M.classes.map((c) => [c.id, TX(c, "name")])), draw);
   $("mcp-source").textContent = TX(M, "source");
   $("mcp-gate-lede").textContent = TX(M, "gate_lede");
-  $("mcp-gates").innerHTML = M.gates.map((g) => `<div class="gate"><h3>${esc(TX(g, "title"))}</h3><p>${esc(TX(g, "body"))}</p>${g.code ? `<pre>${esc(g.code)}</pre>` : ""}</div>`).join("");
+  $("mcp-gates").innerHTML = M.gates.map((g) => `<div class="gate"><h3>${esc(TX(g, "title"))}</h3><p>${esc(TX(g, "body"))}</p>${g.code ? `<pre>${esc(TX(g, "code"))}</pre>` : ""}</div>`).join("");
 }
 
 const FLAG = [["runs_code", "fchip.code", false], ["network", "fchip.net", true], ["secrets", "fchip.key", true], ["installs", "fchip.inst", true], ["writes_outside", "fchip.out", true]];

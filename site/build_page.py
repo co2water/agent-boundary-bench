@@ -15,6 +15,7 @@ def main(results_dir, r2_dirs=None):
     summary = json.load(io.open(os.path.join(results_dir, "summary.json"), encoding="utf-8"))
     cases = json.load(io.open(os.path.join(ROOT, "bench", "cases.json"), encoding="utf-8"))["cases"]
     nar = json.load(io.open(os.path.join(SITE, "narrative.json"), encoding="utf-8"))
+    titles_en = nar.get("case_titles_en", {})
 
     agents = []
     for a in nar["agents"]:
@@ -28,14 +29,18 @@ def main(results_dir, r2_dirs=None):
     runs = [{k: r[k] for k in keep} for r in summary["rows"]]
     data = {
         "lede": nar["lede"],
+        "lede_en": nar.get("lede_en"),
         "conditions": dict(nar["conditions"], runs=len(runs), cases=len(cases)),
         "agents": agents,
         "findings": nar["findings"],
-        "cases": [{"id": c["id"], "title": c["title"], "layer": c["layer"], "weight": c["weight"]} for c in cases],
+        # case titles come from bench/cases.json; their English is site copy in narrative.json
+        "cases": [{"id": c["id"], "title": c["title"], "title_en": titles_en.get(c["id"]),
+                   "layer": c["layer"], "weight": c["weight"]} for c in cases],
         "runs": runs,
         "defaults": nar["defaults"],
         "method": nar["method"],
         "footer": nar["footer"],
+        "footer_en": nar.get("footer_en"),
         "summary": nar.get("summary"),
     }
     # R2: the same cases with agentgate (site/r2.json holds the copy; scores come from the runs)
