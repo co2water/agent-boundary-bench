@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=77"]  # SPDX license expression (PEP 639)
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentgate"
+version = "0.2.0"
+description = "A boundary gateway between an AI agent and its MCP servers: policy, not the model, decides every tool call (prototype)."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Development Status :: 3 - Alpha",
+]
+
+[project.scripts]
+agentgate = "gateway:main"
+
+[tool.setuptools]
+# the single-file module only; test_gateway.py and fooled_agent.py stay out of the wheel
+py-modules = ["gateway"]

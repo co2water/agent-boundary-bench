@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "description": "Pins the agents, runtimes and models that produced the R1-R3 results. scripts/setup.ps1 and scripts/setup.sh read this file; bench/manifest.py copies it into every run's manifest.json.",
+  "recorded": "2026-10-08",
+  "npm_locks": "scripts/npm/<agent>/{package.json,package-lock.json} are verbatim copies of the installs used for R1-R3; setup runs `npm ci` from them (full transitive pinning) and falls back to `npm install --save-exact <package>@<version>` only if they are missing.",
+  "platform": {
+    "os": "Windows 11, native (no WSL, no container)",
+    "python": "3.14",
+    "python_observed": "3.14.4",
+    "note": "The bench itself needs Python 3.11+ (standard library only). Linux/Docker is supported by bench/config.py but no published round was run there."
+  },
+  "runtimes": {
+    "node_openclaw": {
+      "purpose": "OpenClaw needs a newer Node than the system one; adapters.py prepends ABB_NODE_DIR to PATH for OpenClaw only.",
+      "version": "24.21.0",
+      "platform": "win-x64",
+      "archive": "node-v24.21.0-win-x64.zip",
+      "url": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-win-x64.zip",
+      "sha256": "158f7685b44de51f6c0df1d153526cbcd3e1bc739a8dfc607721cef75de9e541",
+      "install_dir": "runtime/node-v24.21.0-win-x64",
+      "env": "ABB_NODE_DIR",
+      "required_range": ">=24.16.0 <25 || >=26.1.0"
+    }
+  },
+  "agents": [
+    {
+      "id": "openclaw",
+      "display_name": "OpenClaw",
+      "source": "npm",
+      "package": "openclaw",
+      "version": "2026.9.7",
+      "install": {
+        "method": "npm",
+        "dir": "openclaw",
+        "node": "node_openclaw",
+        "npm_lock": "scripts/npm/openclaw",
+        "integrity": "sha512-/8N2LnfTFQPvnZizi8qKSFfnLQaPvSG3Cb4xo1YV7b4JhYiUc43ZNRpXJ01bWghLK0Ezk3HVeo/DGHcIRQwRWA==",
+        "command": "npm install --save-exact openclaw@2026.9.7",
+        "package_json_extra": {
+          "allowScripts": {
+            "openclaw": true
+          }
+        }
+      },
+      "launcher": {
+        "bin": "openclaw",
+        "path": "$ABB_AGENTS_DIR/openclaw/node_modules/.bin/openclaw[.cmd]",
+        "resolved_by": "bench/config.py npm_bin('openclaw', 'openclaw')",
+        "node": "runtimes.node_openclaw (ABB_NODE_DIR)",
+        "invocation": "openclaw agent exec --config <run.json5> --state-dir <dir> --cwd <work> --model <provider/model> --json --message-file <prompt.txt>"
+      }
+    },
+    {
+      "id": "dsh",
+      "display_name": "DeepSeek Harness",
+      "source": "npm",
+      "package": "@deepseek-ai/dsh",
+      "version": "0.2.0-rc.2",
+      "install": {
+        "method": "npm",
+        "dir": "dsh",
+        "node": "system",
+        "npm_lock": "scripts/npm/dsh",
+        "integrity": "sha512-EAJ3gPNcVt/uv8X19PMm9NkVhWgT7xXNMk0UKCVm+IQ5rpSQOcsMUa0HWlnYYVybKMsccjcRB21vVVsaXQ6IdA==",
+        "command": "npm install --save-exact @deepseek-ai/dsh@0.2.0-rc.2",
+        "package_json_extra": {}
+      },
+      "launcher": {
+        "bin": "dsh",
+        "path": "$ABB_AGENTS_DIR/dsh/node_modules/.bin/dsh[.cmd]",
+        "resolved_by": "bench/config.py npm_bin('dsh', 'dsh')",
+        "node": "system node on PATH",
+        "invocation": "dsh headless --patch <bench.yml> --json <prompt>"
+      }
+    },
+    {
+      "id": "hermes",
+      "display_name": "Hermes Agent",
+      "source": "git",
+      "package": "hermes-agent",
+      "repository": "https://github.com/NousResearch/hermes-agent.git",
+      "version": "0.21.0",
+      "commit": "25d954c2",
+      "local_commit": "1ab033ce",
+      "commit_note": "R1-R3 ran on the local install: upstream 25d954c2 plus 7 locally carried commits (local HEAD 1ab033ce), as reported by `hermes --version` on 2026-10-02. Reproduce with upstream 25d954c2; the carried commits are installer-managed and not part of this repo.",
+      "install": {
+        "method": "official installer (git install into a venv); manual, not automated by setup scripts",
+        "dir": "%LOCALAPPDATA%/hermes/hermes-agent (Windows), ~/.hermes/hermes-agent (Linux default in bench/config.py)",
+        "command": null
+      },
+      "launcher": {
+        "bin": "hermes",
+        "path": "$ABB_HERMES_EXE (default %LOCALAPPDATA%/hermes/hermes-agent/venv/Scripts/hermes.exe)",
+        "resolved_by": "bench/config.py hermes_exe()",
+        "invocation": "hermes chat -q <prompt> --oneshot -Q",
+        "note": "Each run sets HERMES_HOME to a fresh per-run state dir, so the user's own Hermes config is not read."
+      }
+    },
+    {
+      "id": "refagent",
+      "display_name": "Reference agent (in-repo)",
+      "source": "repo",
+      "package": "bench/refagent.py",
+      "version": "repo commit (see manifest.json git_commit)",
+      "install": {
+        "method": "none (standard library Python)",
+        "dir": null,
+        "command": null
+      },
+      "launcher": {
+        "bin": "python bench/refagent.py",
+        "path": "bench/refagent.py",
+        "resolved_by": "bench/adapters.py _refagent",
+        "invocation": "python refagent.py --mcp <json> --model <id> --prompt-file <file> [--local-builtins]"
+      }
+    }
+  ],
+  "models": [
+    {
+      "id": "deepseek-v4-flash",
+      "provider": "DeepSeek API",
+      "base_url": "https://api.deepseek.com",
+      "key_env": "DEEPSEEK_API_KEY",
+      "select_with": "BENCH_MODEL=deepseek-v4-flash (the default)",
+      "rounds": ["R1", "R2"]
+    },
+    {
+      "id": "meta-llama/llama-3.1-8b-instruct",
+      "provider": "OpenRouter",
+      "base_url": "https://openrouter.ai/api/v1",
+      "key_env": "OPENROUTER_API_KEY",
+      "select_with": "BENCH_MODEL=meta-llama/llama-3.1-8b-instruct",
+      "provider_routing": {
+        "order": ["Fireworks", "Together", "DeepInfra", "Lambda"],
+        "allow_fallbacks": true
+      },
+      "rounds": ["R3"]
+    }
+  ],
+  "rounds": {
+    "R1": {
+      "question": "factory defaults",
+      "BENCH_MODE": "default",
+      "model": "deepseek-v4-flash",
+      "agents": ["openclaw", "dsh", "hermes"],
+      "results": "results/v2-2026-10-02"
+    },
+    "R2": {
+      "question": "boundary gateway",
+      "BENCH_MODE": ["gate", "lockdown"],
+      "model": "deepseek-v4-flash",
+      "agents": ["openclaw", "dsh", "hermes"],
+      "results": ["results/r2-gate", "results/r2-lockdown"]
+    },
+    "R3": {
+      "question": "a gullible model",
+      "BENCH_MODE": ["default", "lockdown"],
+      "model": "meta-llama/llama-3.1-8b-instruct",
+      "agents": ["refagent"],
+      "results": ["results/r3-llama-default", "results/r3-llama-lockdown"]
+    }
+  }
+}

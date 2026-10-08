@@ -1,0 +1,17 @@
+# BuildKit reads this file for docker/Dockerfile (it overrides a root .dockerignore).
+# Keep installs, run data and anything secret-shaped out of the build context.
+.git
+.claude
+agents
+runtime
+results
+site
+docker
+**/__pycache__
+**/*.pyc
+bench/var
+*.env
+.env*
+.credentials*
+*.key
+*.pem

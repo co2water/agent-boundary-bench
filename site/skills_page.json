@@ -1,0 +1,60 @@
+{
+  "lede": "50 個熱門 skill（官方 15、服務商 17、社群 18），逐一讀過 SKILL.md 和附帶的腳本後分級。32 個會連網、安裝套件、讀金鑰或寫到工作區外；只有說明文字、不跑任何程式的 A 級有 11 個。排序先看等級，同級再看星數。",
+  "levels": [
+    {
+      "id": "A",
+      "tier": "t0",
+      "name": "只有說明",
+      "desc": "只有 SKILL.md 文字，不跑程式、不連網、不碰金鑰。風險最低。",
+      "name_en": "Instructions only",
+      "desc_en": "Just SKILL.md text — runs no code, no network, no keys. Lowest risk."
+    },
+    {
+      "id": "B",
+      "tier": "t1",
+      "name": "跑本機程式",
+      "desc": "會執行附帶的腳本，但不連網、不讀金鑰。裝之前看一下腳本內容。",
+      "name_en": "Runs local scripts",
+      "desc_en": "Runs bundled scripts, but no network and no keys. Skim the scripts before installing."
+    },
+    {
+      "id": "C",
+      "tier": "t2",
+      "name": "會往外伸",
+      "desc": "會連網、安裝套件、讀金鑰，或寫到工作區外。只裝來源可信的。",
+      "name_en": "Reaches out",
+      "desc_en": "Reaches the network, installs packages, reads keys, or writes outside the workspace. Install only from trusted sources."
+    },
+    {
+      "id": "X",
+      "tier": "t3",
+      "name": "跳過你的確認",
+      "desc": "指示 agent 不經確認就做有外部影響的事，或在背景自動改變自己，或程式碼有混淆。不一定是惡意，但裝之前要知道。",
+      "name_en": "Skips your confirmation",
+      "desc_en": "Instructs the agent to take externally-visible actions without confirming, or changes itself in the background, or has obfuscated code. Not necessarily malicious, but know before installing."
+    }
+  ],
+  "categories": {
+    "docs": "文件",
+    "writing": "寫作",
+    "research": "研究",
+    "design": "設計",
+    "data": "資料分析",
+    "dev": "開發",
+    "automation": "自動化",
+    "life": "生活"
+  },
+  "source": "資料：GitHub API 與 skills.sh，2026-10-02 以靜態方式讀取 SKILL.md 和腳本，沒有執行任何程式。靜態檢查擋不住刻意混淆的惡意 skill（已有研究以超過 90% 的成功率繞過 8 款掃描器），所以分級只代表「它寫了什麼」，不保證安全。skills.sh 上有幾個安裝數和星數明顯不成比例的 skill，沒有列入。",
+  "lede_en": "50 popular skills (15 official, 17 vendor, 18 community), graded after reading each SKILL.md and its scripts. 32 reach the network, install packages, read keys or write outside the workspace; only 11 are level A — instructions-only, running no code. Sorted by level, then stars.",
+  "categories_en": {
+    "docs": "Docs",
+    "writing": "Writing",
+    "research": "Research",
+    "design": "Design",
+    "data": "Data",
+    "dev": "Dev",
+    "automation": "Automation",
+    "life": "Life"
+  },
+  "source_en": "Data: GitHub API and skills.sh, read statically from SKILL.md and scripts on 2026-10-02, running nothing. Static reading can't stop a deliberately obfuscated malicious skill (research has bypassed 8 scanners at over 90% success), so a grade reflects only “what it says,” not safety. A few skills on skills.sh with install counts wildly out of proportion to their stars were left out."
+}

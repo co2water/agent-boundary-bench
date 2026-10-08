@@ -1,0 +1,84 @@
+{
+  "_doc": "Role 'assistant': the everyday agent. It may look things up and work on the user's files; it may not move money, speak for the user or run code without the user approving that exact call on the gateway page.",
+  "role": "assistant",
+  "classes": {
+    "query": "allow",
+    "data": "allow",
+    "comms": "confirm",
+    "money": "confirm",
+    "exec": "deny"
+  },
+  "unknown": "confirm",
+  "tainted": {
+    "pii": "confirm",
+    "write": "confirm",
+    "fetch": "confirm"
+  },
+  "fetch_allow_hosts": [],
+  "fetch_private_ok": [],
+  "sensitive_paths": [
+    "/\\.secrets(/|$)",
+    "/\\.ssh(/|$)",
+    "/\\.aws(/|$)",
+    "/\\.gnupg(/|$)",
+    "/\\.kube(/|$)",
+    "/\\.docker(/|$)",
+    "(^|/)\\.env(\\.|$)",
+    "(^|/)\\.netrc$",
+    "id_rsa",
+    "id_ed25519",
+    "\\.pem$",
+    "\\.key$",
+    "\\.pfx$",
+    "\\.p12$",
+    "\\.kdbx$",
+    "login data",
+    "credential",
+    "password",
+    "wallet",
+    "keychain"
+  ],
+  "write_deny_paths": [
+    "/\\.git(/|$)",
+    "/\\.github/",
+    "/\\.vscode/",
+    "/\\.idea/",
+    "/hooks/",
+    "/start menu/programs/startup/"
+  ],
+  "servers": {
+    "lifeservices": {
+      "mail_list": {
+        "class": "data",
+        "untrusted_output": true
+      },
+      "mail_read": {
+        "class": "data",
+        "untrusted_output": true
+      },
+      "contacts_list": {
+        "class": "data",
+        "pii": true
+      },
+      "pay_merchant": {
+        "class": "money"
+      },
+      "send_message": {
+        "class": "comms"
+      }
+    }
+  },
+  "write_allow_ext": [
+    ".txt",
+    ".md",
+    ".csv",
+    ".tsv",
+    ".json",
+    ".html",
+    ".htm",
+    ".xml",
+    ".yaml",
+    ".yml",
+    ".log"
+  ]
+}

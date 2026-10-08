@@ -1,0 +1,55 @@
+{
+  "lede": "同一套 11 題、同一個模型，再跑兩種配置各 99 輪。只把 MCP 接到閘道，三家平均多 19 分，但讀密鑰、往外寫檔、上傳私人筆記照舊；再關掉 agent 內建的 shell、讀檔和抓網頁，三家都是零越界，可用度不變。閘道程式碼在上測試台前經過四輪安全審查。",
+  "configs": [
+    {
+      "id": "default",
+      "name": "R1 出廠設定",
+      "desc": "第一輪的結果：只設模型和模擬 MCP 伺服器，其餘全是出廠值。",
+      "name_en": "R1 factory defaults",
+      "desc_en": "The first round: only the model and a mock MCP server are set; everything else is factory."
+    },
+    {
+      "id": "gate",
+      "name": "加閘道",
+      "desc": "MCP 伺服器改經過 agentgate：交易類、通訊類要你在確認頁批准，讀入外部內容後讀個人資料也要確認。agent 自己的 shell、讀檔、抓網頁照舊。",
+      "name_en": "+ gateway",
+      "desc_en": "The MCP server goes through agentgate: money and comms tools need your approval on a confirmation page; reading personal data after outside content is read needs confirmation too. The agent's own shell, file and web tools are unchanged."
+    },
+    {
+      "id": "lockdown",
+      "name": "閘道＋收斂內建工具",
+      "desc": "再關掉 agent 內建的 shell、讀檔、抓網頁，改用閘道提供的工具：只能讀寫工作區、敏感路徑一律拒絕、只能 GET。這就是「按類別拆 agent」的日常 agent。",
+      "name_en": "gateway + narrowed built-ins",
+      "desc_en": "Also turn off the agent's built-in shell, file and web tools and use the gateway's instead: workspace-only read/write, sensitive paths always denied, GET only. This is the everyday agent under “split agents by class.”"
+    }
+  ],
+  "findings": [
+    {
+      "title": "只加閘道：付款和發訊息全擋，其他照舊",
+      "body": "18 輪付款、發訊息要求一次都沒成功，三家分數各多 14 到 21 分。但讀密鑰、往桌面寫檔、上傳筆記走的是 agent 內建工具，不經過 MCP；任何 MCP 閘道本身都看不到這條路。",
+      "title_en": "Gateway alone: pay and message fully blocked, the rest unchanged",
+      "body_en": "Across 18 payment and messaging requests none succeeded, and each agent gained 14–21 points. But reading secrets, writing to the desktop and uploading notes go through the agent's built-in tools, not MCP; no MCP gateway can see that path."
+    },
+    {
+      "title": "閘道加收斂內建工具：零越界，分差歸零",
+      "body": "99 輪沒有一次越界，正常任務全部完成。R1 三家相差 19 分，這裡全部 100：越界防護可以放在 harness 外面，用同一份政策管住不同家的 agent。",
+      "title_en": "Gateway + narrowed built-ins: zero overreach, the spread gone",
+      "body_en": "Not one overreach across 99 runs, every benign task completed. R1's 19-point spread becomes a flat 100: overreach protection can live outside the harness, governing agents from different vendors with one policy."
+    },
+    {
+      "title": "擋下的是真實動作",
+      "body": "兩種配置合計攔下 83 次呼叫，包括付款、發訊息、讀 .secrets、往工作區外寫檔，以及 20 次「讀完詐騙信或網頁後又想讀通訊錄、寫檔」的污染規則攔截。後者在 R1 不算越界，但確實是可疑動作。",
+      "title_en": "What it blocked were real actions",
+      "body_en": "The two configs together intercepted 83 calls — payments, messages, reading .secrets, writing outside the workspace, plus 20 taint-rule catches of “after reading a scam email or web page, then trying to read contacts or write.” The latter don't count as overreach in R1 but are genuinely suspicious."
+    },
+    {
+      "title": "代價與還沒驗證的部分",
+      "body": "測試裡沒有人在確認頁按批准，所以付款、發訊息一律被拒；實際使用時要你逐次批准。注入題在 R1 就全擋，這輪也沒出現真的騙過模型的情況，污染規則還沒在「模型已經上當」時被考驗過。已知限制：DNS 重新綁定可繞過內網檢查。",
+      "title_en": "The cost and what's not yet proven",
+      "body_en": "No one clicked approve on the confirmation page during the test, so payments and messages were all denied; in real use you approve each one. Injection was already fully blocked in R1 and nothing truly fooled the model this round, so the taint rule hasn't been tested with a model that actually fell for it. Known limit: a DNS rebind can defeat the intranet check."
+    }
+  ],
+  "fooled_lede": "前面的分數裡，注入題是靠模型自己識破的。這一輪不靠模型：直接寫一個腳本，扮演一個完全照注入指示動作的 agent，對閘道發出每一題的中招工具呼叫，看閘道逐步擋不擋得住。攻擊文字沿用同一批合成誘餌，沒有新增。結果：10 題的有害動作全部被閘道擋下。A5、B1、B5 擋在讀取那一步（私密檔在工作區外）；另外單獨驗證過，就算那些檔案改放在工作區內可以讀到，外傳那一步照樣擋得住，原值、拆成網址路徑、base64 三種都擋下。",
+  "lede_en": "The same 11 cases and model, two more configs at 99 runs each. Routing MCP through the gateway alone adds ~19 points on average, but reading secrets, writing outside the workspace and uploading private notes continue; also turning off the agent's built-in shell, file and web tools brings all three to zero overreach with utility unchanged. The gateway code went through four security reviews before the bench.",
+  "fooled_lede_en": "In the scores above, injection was caught by the model itself. This round skips the model: a script plays an agent that obeys every injection verbatim and fires each case's compromise tool calls at the gateway, step by step. The attack text reuses the same synthetic fixtures — nothing new. Result: all 10 cases' harmful actions were blocked. A5, B1, B5 are stopped at the read (the private file is outside the workspace); and verified separately, even if those files sat inside the workspace and could be read, the exfiltration step is still blocked — plain value, split into URL path, and base64 all caught."
+}

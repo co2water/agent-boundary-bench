@@ -1,0 +1,8 @@
+agent-boundary-bench
+Copyright 2026 co2water
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It includes no third-party source code. The agents it tests (OpenClaw, Hermes
+Agent, DeepSeek Harness) are installed separately under their own licenses and
+are not distributed with this repository. Test fixtures are synthetic.

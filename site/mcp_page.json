@@ -1,0 +1,80 @@
+{
+  "lede": "40 個常用 MCP 伺服器，按它能伸多遠分成五類。21 個提供唯讀模式或工具白名單。交易類 9 個裡，文件寫明會在部分退款和對外付款時要人點連結批准的只有 Stripe。通訊類幾乎都是社群專案，Slack、Gmail、WhatsApp 在 GitHub 上都沒有官方的開源伺服器。",
+  "classes": [
+    {
+      "id": "query",
+      "tier": "t0",
+      "name": "查詢類",
+      "desc": "只讀外部公開資訊，例如搜尋、文件、地圖。被注入時最多讀到錯誤內容。",
+      "name_en": "Query",
+      "desc_en": "Reads public external info only — search, docs, maps. At worst an injection makes it read wrong content."
+    },
+    {
+      "id": "data",
+      "tier": "t1",
+      "name": "資料類",
+      "desc": "讀寫你的檔案、雲端文件、資料庫、程式庫。可能被誘導刪改或外流資料。",
+      "name_en": "Data",
+      "desc_en": "Reads/writes your files, cloud docs, databases, repos. Could be lured into altering or leaking data."
+    },
+    {
+      "id": "comms",
+      "tier": "t2",
+      "name": "通訊類",
+      "desc": "用你的身分發訊息、寄信。可能被誘導冒名發送，或把通訊錄外流。",
+      "name_en": "Comms",
+      "desc_en": "Sends messages and mail as you. Could be lured into impersonation, or leak your contacts."
+    },
+    {
+      "id": "exec",
+      "tier": "t2",
+      "name": "執行類",
+      "desc": "執行程式、操控瀏覽器或桌面。權限接近整台電腦。",
+      "name_en": "Exec",
+      "desc_en": "Runs code, drives a browser or desktop. Authority close to the whole machine."
+    },
+    {
+      "id": "money",
+      "tier": "t3",
+      "name": "交易類",
+      "desc": "付款、下單、轉帳。錢一付出去就很難追回。",
+      "name_en": "Money",
+      "desc_en": "Pays, places orders, transfers. Once money leaves, it's hard to get back."
+    }
+  ],
+  "source": "資料：GitHub API、MCP 官方登錄、各專案 README 與原始碼，2026-10-02。「會越界的工具」都對照過 README 或工具定義原始碼，不是推測。標示「整個 repo」的星數是整個專案的，不只 MCP 伺服器。Notion 本機版已停止維護，官方改提供遠端伺服器；Google Maps 官方參考伺服器已封存，這裡列的是社群版。",
+  "gate_lede": "第一頁的測試顯示，三家出廠時對 MCP 工具一律不設批准。以下設定用在通訊類和交易類伺服器上，其中兩家已用同一套測試驗證過（A1 付款、A2 發訊息，加上對照題確認正常任務不受影響）。",
+  "gates": [
+    {
+      "title": "Hermes Agent：設 trust: untrusted（已實測）",
+      "body": "在 MCP 伺服器設定加上 trust: untrusted，沒有標記唯讀的工具每次都要人批准；無人值守時會自動拒絕。實測付款和發訊息都在呼叫前被擋下，正常任務照常完成。",
+      "code": "mcp_servers:\n  wallet:\n    command: ...\n    trust: untrusted",
+      "title_en": "Hermes Agent: set trust: untrusted (verified)",
+      "body_en": "Add trust: untrusted to the MCP server config and any tool not marked read-only needs approval each time; unattended it auto-denies. In testing, payment and messaging were both blocked before the call and benign tasks completed normally."
+    },
+    {
+      "title": "OpenClaw：用 tools.deny 拿掉工具（已實測）",
+      "body": "文件只替 Codex 執行環境提供 MCP 逐次批准，內建執行環境沒有。可行的做法是用 tools.deny 把付款、發訊息工具從日常用的 agent 拿掉；實測兩題都擋下。需要付款時，另外開一個隔離的 agent（openclaw agents）專門掛交易類伺服器。",
+      "code": "tools: { deny: [\"wallet__pay_merchant\", \"chat__send_message\"] }",
+      "title_en": "OpenClaw: remove the tool with tools.deny (verified)",
+      "body_en": "The docs only offer per-call MCP approval for the Codex runtime, not the built-in one. A workable approach is tools.deny to remove the pay and message tools from the everyday agent; both cases were blocked in testing. When you need to pay, open a separate isolated agent (openclaw agents) just for money-class servers."
+    },
+    {
+      "title": "DeepSeek Harness：用獨立 profile 隔開（未實測）",
+      "body": "MCP 工具呼叫預設直接放行，文件沒有提供針對 MCP 工具的批准設定。做法是不要把交易類、通訊類伺服器掛在日常用的 profile，另外建一個 profile 專門使用。",
+      "code": "dsh wallet --from-default-profile web   # 建立獨立 profile，只在這裡掛交易類 MCP",
+      "title_en": "DeepSeek Harness: isolate with a separate profile (not tested)",
+      "body_en": "MCP tool calls pass by default and the docs offer no approval setting for MCP tools. The approach is to keep money- and comms-class servers off the everyday profile and create a separate profile for them."
+    },
+    {
+      "title": "通用原則：按類別拆開 agent",
+      "body": "查詢類和資料類可以放在日常的 agent；通訊類、交易類、執行類各自放在獨立的 agent 或 profile，並加上確認閘。讓日常 agent 根本拿不到付款能力，比要求它不要付款可靠。這就是 AHA 協議（Agent Hub Access，支付寶發布的多智能體互聯協議，OPPO 小布是首批接入的手機助理）「職責物理隔離」的做法。",
+      "code": "",
+      "title_en": "General principle: split agents by class",
+      "body_en": "Query and data can live on the everyday agent; comms, money and exec each go on a separate agent or profile, with a confirmation gate. Making the everyday agent simply unable to pay is more reliable than asking it not to. This is the “physical separation of duties” in the AHA protocol (Agent Hub Access, the multi-agent interconnect protocol Alipay published, with OPPO's Breeno assistant among the first to connect)."
+    }
+  ],
+  "lede_en": "40 common MCP servers, grouped into five classes by how far each can reach. 21 offer a read-only mode or tool allowlist. Of the 9 money-class servers, only Stripe documents a click-to-approve step for some refunds and outbound payments. Comms is almost all community projects; Slack, Gmail and WhatsApp have no official open-source server on GitHub.",
+  "source_en": "Data: GitHub API, the official MCP registry, project READMEs and source, 2026-10-02. The “oversteppable tools” were each checked against the README or tool-definition source, not guessed. Stars marked “whole repo” count the whole project, not just the MCP server. The local Notion server is no longer maintained (the official one is remote); the official Google Maps reference server is archived, so a community one is listed.",
+  "gate_lede_en": "The first page showed all three ship with no approval on MCP tools. The settings below apply to comms- and money-class servers; two of them were verified with the same test (A1 pay, A2 message, plus a control case confirming benign tasks are unaffected)."
+}

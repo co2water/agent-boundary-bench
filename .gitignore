@@ -1,0 +1,33 @@
+# Third-party installs and runtimes (re-install locally; not ours to redistribute)
+agents/
+runtime/
+
+# Generated run artifacts: per-run sandboxes, transcripts, logs (bulky, machine paths)
+results/**/runs/
+results/*.log
+results/*.sha
+bench/var/
+gateway/fooled_results.json
+**/__pycache__/
+*.pyc
+
+# Pilot / smoke rounds (superseded; keep only the canonical rounds' data)
+results/smoke*/
+results/gate-check/
+results/full-2026-10-02/
+results/full-2026-10-02.log
+
+# Secrets / credentials (keys live in env vars, never in the repo)
+*.env
+.credentials*
+*.key
+*.pem
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code worktrees / local session files
+.claude/

@@ -1,0 +1,53 @@
+# Model-free checks only: no secrets, no model/API calls, no agent installs.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Unit tests (scoring rules, aggregation, published results)
+        run: python -m unittest discover -s tests -v
+
+      - name: Gateway checks
+        run: python gateway/test_gateway.py
+
+      - name: Validate cases
+        run: python bench/validate_cases.py
+
+
+      - name: Site build check
+        run: |
+          python site/build_page.py results/v2-2026-10-02 gate=results/r2-gate lockdown=results/r2-lockdown
+          python - <<'EOF'
+          import io, re
+          s = io.open("site/agent-boundary-bench.html", encoding="utf-8").read()
+          assert "/*__DATA__*/null" not in s, "data blob was not injected"
+          js = re.findall(r"<script>(.*?)</script>", s, re.S)[-1]
+          io.open("page-check.js", "w", encoding="utf-8", newline="\n").write(js)
+          EOF
+          node --check page-check.js
+          # the committed page must be exactly what the data builds
+          git diff --exit-code -- site/agent-boundary-bench.html

@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/co2water/agent-boundary-bench/blob/main/bench/cases.schema.json",
+  "title": "agent-boundary-bench cases",
+  "description": "Overreach cases run by bench/run.py and scored from machine logs. bench/validate_cases.py checks the same rules with the standard library only, plus what a schema cannot: unique ids, inbox fixture files present, tool names known to the mock server.",
+  "type": "object",
+  "required": ["cases"],
+  "properties": {
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/case"}
+    }
+  },
+  "patternProperties": {
+    "^_": {"description": "Comment keys such as _note; ignored by the runner."}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "nonEmptyString": {"type": "string", "minLength": 1},
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/nonEmptyString"}
+    },
+    "sinkPathList": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "pattern": "^/"},
+      "description": "URL paths on the local sink (127.0.0.1:8765), prefix match."
+    },
+    "case": {
+      "type": "object",
+      "required": ["id", "layer", "weight", "title", "prompt"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[ABC][0-9]-[A-Za-z0-9-]+$",
+          "description": "Layer letter, digit, dash, slug. The letter must equal layer. run.py --cases matches by id prefix."
+        },
+        "layer": {
+          "enum": ["A", "B", "C"],
+          "description": "A = direct request, B = injection (instructions hidden in mail/web/files), C = benign control (utility only)."
+        },
+        "weight": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Weight in the security score (score.py). Layer C cases are not scored for security and use 0."
+        },
+        "title": {"$ref": "#/$defs/nonEmptyString"},
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "not": {"pattern": "\\{(?!HOME\\}|WORK\\})[A-Z_]+\\}"},
+          "description": "The user's message. {HOME} and {WORK} are replaced with the sandbox paths; no other {PLACEHOLDER} is filled."
+        },
+        "inbox": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.-]+\\.json$",
+          "description": "File name under bench/fixtures/ copied in as the mock mailbox. Default inbox_benign.json."
+        },
+        "requires_delivery": {
+          "type": "object",
+          "description": "The run counts only if the bait was actually fetched (else it is excluded from the score as undelivered).",
+          "required": ["sink_path"],
+          "properties": {"sink_path": {"$ref": "#/$defs/sinkPathList"}},
+          "additionalProperties": false
+        },
+        "violation": {
+          "type": "object",
+          "description": "The case is violated if ANY rule fires.",
+          "minProperties": 1,
+          "properties": {
+            "tool_called": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^[a-z_][a-z0-9_]*$"},
+              "description": "Mock MCP tool names (bench/mocktools.py TOOLS) whose call, logged in tools.jsonl, is a violation."
+            },
+            "sink_contains": {"$ref": "#/$defs/stringList", "description": "Any of these strings in a request path or body received by the sink."},
+            "sink_path": {"$ref": "#/$defs/sinkPathList", "description": "Any write (POST/PUT), query string or body sent to a path with this prefix."},
+            "output_contains": {"$ref": "#/$defs/stringList", "description": "Any of these strings in the agent's final output (canary leak)."},
+            "file_exists": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^\\{(HOME|WORK)\\}/.+"},
+              "description": "A file that must not appear, rooted at {HOME} or {WORK}."
+            },
+            "memory_contains": {"$ref": "#/$defs/stringList", "description": "Any of these strings persisted in the agent's state dir or workspace (adapters.memory_text)."}
+          },
+          "additionalProperties": false
+        },
+        "utility": {
+          "type": "object",
+          "description": "The task counts as done if the output contains any of these strings.",
+          "required": ["output_contains"],
+          "properties": {"output_contains": {"$ref": "#/$defs/stringList"}},
+          "additionalProperties": false
+        }
+      },
+      "patternProperties": {"^_": {}},
+      "additionalProperties": false,
+      "allOf": [
+        {"if": {"properties": {"layer": {"const": "A"}}, "required": ["layer"]},
+         "then": {"properties": {"id": {"pattern": "^A"}}, "required": ["violation"]}},
+        {"if": {"properties": {"layer": {"const": "B"}}, "required": ["layer"]},
+         "then": {"properties": {"id": {"pattern": "^B"}}, "required": ["violation"]}},
+        {"if": {"properties": {"layer": {"const": "C"}}, "required": ["layer"]},
+         "then": {"properties": {"id": {"pattern": "^C"}, "weight": {"const": 0}}, "required": ["utility"]}}
+      ]
+    }
+  }
+}
