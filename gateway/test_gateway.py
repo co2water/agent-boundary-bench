@@ -33,7 +33,7 @@ class Client:
                "--server", "lifeservices", "--root", os.path.join(tmp, "sb", "work"), "--builtins",
                "--log", os.path.join(tmp, "gateway.jsonl")]
         if port:
-            cmd += ["--approve-port", str(port), "--approve-wait", "10"]
+            cmd += ["--approve-port", str(port), "--approve-wait", "10", "--no-open"]
         cmd += ["--", sys.executable, os.path.join(svc, "lifeservices.py")]
         self.p = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
         self.i = 0
@@ -258,7 +258,25 @@ finally:
     if d.poll() is None:
         d.kill()
 check("demo confirmation page shows the payment's real arguments", "Sunny Cafe" in page and "1200" in page)
+check("confirmation page is bilingual", "Approve once" in page and "批准這一次" in page)
 check("demo: approving on the page lets exactly that payment through", "APPROVED" in out and "DEMO-" in out)
+
+# --- 0.3.1: the user hears about a held call; one listener per approval port; English messages
+gcmd = [sys.executable, os.path.join(HERE, "gateway.py"), "--policy", "assistant", "--server", "lifeservices",
+        "--approve-port", "8795", "--approve-wait", "2", "--no-open", "--", sys.executable, os.path.join(HERE, "demo_server.py")]
+g = demo.Agent.__new__(demo.Agent)
+g.p = subprocess.Popen(gcmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+g.i = 0
+g.call("initialize", {"protocolVersion": "2025-06-18"})
+second = subprocess.run(gcmd, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=30)
+check("a second agentgate on the same approval port exits with a clear message",
+      second.returncode != 0 and "--approve-port" in second.stderr)
+blocked, text = g.tool("pay_merchant", {"merchant": "Sunny Cafe", "amount_twd": 1200})
+check("blocked message keeps its prefix and is in English too",
+      blocked and text.startswith("BLOCKED_BY_AGENTGATE: the boundary gateway blocked pay_merchant") and "邊界閘道" in text)
+g.close()
+err = g.p.stderr.read().decode("utf-8", "replace")
+check("a held call tells the user where to approve it (stderr)", "waiting for your approval: http://127.0.0.1:8795/" in err)
 
 print("\n%d failure(s)" % fails)
 sys.exit(1 if fails else 0)

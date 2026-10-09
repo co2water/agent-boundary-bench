@@ -17,7 +17,7 @@ AI 助理正在拿到越來越完整的權限：替你付款、用你的身分�
 **60 秒試用閘道**（需要 [uv](https://docs.astral.sh/uv/)；不需要 API 金鑰，資料是合成的，不會真的扣錢）。一個模擬 agent 嘗試付款，agentgate 把這筆付款扣住，等你在本機確認頁上批准：
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
 ```
 
 要把它放在你自己的 MCP 伺服器前面（Claude Code、Claude Desktop、Cursor），設定方式見 [gateway/README.md](gateway/README.md#wrap-your-own-mcp-server)（英文）。它是原型，先不要接真實的付款工具。

@@ -5,7 +5,7 @@ agentgate instead of the MCP server; agentgate starts the real server behind it 
 decides every `tools/call` from a policy file — not from what the model says.
 Standard library only, one file (`gateway.py`), Python 3.11+.
 
-**Status: prototype (0.3.0). Don't put it in front of real payment or messaging
+**Status: prototype (0.3.1). Don't put it in front of real payment or messaging
 tools yet.** It went through four rounds of adversarial review by separate AI
 reviewer agents, not an independent audit (fix notes at the top of `gateway.py`).
 One finding is still open: the private-address check resolves a host, then urllib
@@ -18,18 +18,18 @@ Needs [uv](https://docs.astral.sh/uv/) (or pipx) and Python 3.11+. No API key, n
 network beyond fetching the code, synthetic data, no money moves:
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
 ```
 
 A scripted agent reads a mock inbox (allowed) and then tries to pay "Sunny Cafe"
 NT$1,200. agentgate holds the payment and opens its confirmation page in your
-browser, showing the real arguments. Press **批准這一次** (approve once) and the mock
-server returns a fake receipt; press **拒絕** (deny) or wait, and the agent gets
+browser, showing the real arguments. Press **Approve once** and the mock server
+returns a fake receipt; press **Deny** or wait, and the agent gets
 `BLOCKED_BY_AGENTGATE`. `agentgate demo --no-approver` shows the fail-closed case
 without a page. With pipx instead of uv:
 
 ```
-pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate demo
+pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
 ```
 
 agentgate lives inside the agent-boundary-bench repo but does not depend on it:
@@ -62,9 +62,9 @@ From git, no PyPI (the name `agentgate` on PyPI belongs to another project; this
 package is not published there):
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway" agentgate --help
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"   # keeps an `agentgate` command
-pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate --help
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"   # keeps an `agentgate` command
+pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"
 ```
 
 From a checkout, no install needed:
@@ -89,7 +89,7 @@ Install once, so the client doesn't wait on a git clone at startup (needs `git` 
 PATH):
 
 ```
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.0#subdirectory=gateway"
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"
 ```
 
 Then point the client at `agentgate` and put the real server after `--`. Give each
@@ -132,8 +132,11 @@ or `.cursor/mcp.json`) take the same shape. If the client can't find `agentgate`
 }
 ```
 
-Some clients give up on a tool call after their own timeout. Approve within it, or
-lower `--approve-wait` so agentgate denies first.
+When a call is held, agentgate opens the confirmation page in your browser (at most
+once a minute; `--no-open` turns that off) and writes `agentgate: <tool> is waiting
+for your approval: http://127.0.0.1:8766/` to stderr, which MCP clients keep in their
+server log. Some clients give up on a tool call after their own timeout. Approve
+within it, or lower `--approve-wait` so agentgate denies first.
 
 ## Command line
 
@@ -143,8 +146,9 @@ lower `--approve-wait` so agentgate denies first.
 | `--server NAME` | Required. Key under `servers` in the policy that describes the upstream's tools. |
 | `--root DIR` | Workspace root for the builtin file tools. Paths outside it need confirmation; without it every path counts as outside. |
 | `--builtins` | Also serve `gw_list_dir`, `gw_read_file`, `gw_write_file`, `gw_fetch`. Upstream tools with these names are dropped. |
-| `--approve-port N` | Serve the approval page on `http://127.0.0.1:N/`. Default 0 = no approver: every `confirm` becomes deny. |
+| `--approve-port N` | Serve the approval page on `http://127.0.0.1:N/`. Default 0 = no approver: every `confirm` becomes deny. If the port is already in use, agentgate exits with an error. |
 | `--approve-wait SEC` | How long a call waits for a decision on the page. Default 120. Timeout = deny. |
+| `--no-open` | Don't open the approval page in a browser when a call is held (it still logs the address on stderr). |
 | `--log FILE` | Append one JSON line per tool call: `tool`, `class`, `verdict`, `reason`, `approved`, `ts`, `tainted`. |
 | `-- CMD ...` | Required. The upstream MCP server command (stdio). Everything after `--` is passed through. |
 | `demo` | Instead of the flags above: run the demo (`--no-approver`, `--port N`, `--wait SEC`, `--no-browser`). |
@@ -152,7 +156,12 @@ lower `--approve-wait` so agentgate denies first.
 
 agentgate speaks MCP over stdio (JSON-RPC 2.0, one message per line) and answers
 `initialize`, `tools/list`, `tools/call` and `ping`. It assumes the upstream answers
-requests in order.
+requests in order. **Only tools pass through.** It advertises the tools capability
+alone, so resources, prompts, sampling and the upstream's notifications (such as a
+changed tool list) are not proxied: a resource read would bypass the policy. Servers
+whose useful features are resources or prompts lose them behind agentgate. Tested
+with the bench's mock server, the demo server, and a server built on the official
+MCP Python SDK (2.2).
 
 ## Policy file
 
@@ -178,7 +187,8 @@ private address) apply before the class verdict and cannot be approved.
 
 ## Approval page
 
-Run with `--approve-port 8766` and open `http://127.0.0.1:8766/`. The page refreshes
+Run with `--approve-port 8766`; agentgate opens `http://127.0.0.1:8766/` when a call is
+held (or open it yourself). The page is in English and Chinese and refreshes
 every 3 seconds and lists each call waiting for you: the tool, every argument as
 sent (resolved file paths, payee, amount; control and bidi characters shown as
 escapes), the reason it needs you, and an argument fingerprint. **Approve once**
@@ -195,7 +205,7 @@ Both scripts start the real gateway in front of the bench's mock MCP server
 them from a checkout that has the `bench/` folder next to `gateway/`.
 
 ```
-python gateway/test_gateway.py    # 45 rule checks incl. security-review regressions and the demo; prints PASS/FAIL, exit 1 on any failure
+python gateway/test_gateway.py    # 49 rule checks incl. security-review regressions and the demo; prints PASS/FAIL, exit 1 on any failure
 python gateway/fooled_agent.py    # a scripted, already-fooled agent replays each bench attack; shows which step the gateway stopped
 ```
 

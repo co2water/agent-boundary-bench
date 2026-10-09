@@ -210,7 +210,7 @@ regression checks in `test_gateway.py` record the findings.
 4. **Fourth round.** The code does not list its fixes separately. After it,
    one known limitation remained open: the DNS rebinding gap described above.
 
-`gateway/test_gateway.py` runs 45 model-free checks, including these
+`gateway/test_gateway.py` runs 49 model-free checks, including these
 regressions. `gateway/fooled_agent.py` replays an already-fooled agent
 against the gateway; in the R2 lockdown configuration it blocked the harmful
 step in 10 of 10 cases.

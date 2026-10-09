@@ -14,9 +14,7 @@ import os
 import socket
 import subprocess
 import sys
-import threading
 import time
-import webbrowser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PAYMENT = {"merchant": "Sunny Cafe", "amount_twd": 1200, "memo": "coffee beans"}
@@ -86,7 +84,8 @@ def run(argv=None):
     cmd = [sys.executable, os.path.join(HERE, "gateway.py"), "--policy", os.path.join(HERE, "policy.assistant.json"),
            "--server", "lifeservices"]
     if port:
-        cmd += ["--approve-port", str(port), "--approve-wait", str(a.wait)]
+        # agentgate itself opens the page when the payment is held (skipped when headless)
+        cmd += ["--approve-port", str(port), "--approve-wait", str(a.wait)] + (["--no-open"] if a.no_browser else [])
     cmd += ["--", sys.executable, os.path.join(HERE, "demo_server.py")]
 
     print("agentgate demo: a scripted agent -> agentgate -> a mock payment server.")
@@ -105,13 +104,10 @@ def run(argv=None):
         print("   money class, policy: confirm -> agentgate holds the call.")
         if port:
             url = "http://127.0.0.1:%d/" % port
-            print("   Open %s and press 批准這一次 (approve once) or 拒絕 (deny)." % url)
-            print("   The page shows the real arguments. Waiting up to %d s..." % a.wait)
             headless = sys.platform.startswith("linux") and not (os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY"))
-            if not (a.no_browser or headless):
-                t = threading.Timer(0.8, lambda: webbrowser.open(url))
-                t.daemon = True  # a console browser must not keep the demo alive
-                t.start()
+            how = "Open" if (a.no_browser or headless) else "agentgate opens it for you, or open"
+            print("   %s %s and press Approve once or Deny." % (how, url))
+            print("   The page shows the real arguments. Waiting up to %d s..." % a.wait)
         else:
             print("   No confirmation page is running (--no-approver), so nobody can approve it.")
         start = time.time()

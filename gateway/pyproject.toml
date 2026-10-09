@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentgate"
-version = "0.3.0"
+version = "0.3.1"
 description = "A boundary gateway between an AI agent and its MCP servers: policy, not the model, decides every tool call (prototype)."
 readme = "README.md"
 license = "Apache-2.0"

@@ -69,24 +69,32 @@ produce the work. Record who reviewed what, and when.
       with `git commit-tree`, never force-pushed. Start the public branch
       from one reviewed commit. Do not publish the private history. Re-run
       the privacy review on the squashed tree.
-- [ ] **No private artifact links.** No links to private documents, shared
+- [x] **No private artifact links.** No links to private documents, shared
       chats, private artifact pages or internal dashboards in any file,
-      including `site/` data and commit messages.
-- [ ] **No generated or third-party files.** `agents/`, `runtime/`,
-      `results/**/runs/` and `gateway/fooled_results.json` stay out.
+      including `site/` data and commit messages. Checked 2026-10-09 with
+      `git grep`: the only hits are public GitHub links in the skill list.
+- [x] **No generated or third-party files.** `agents/`, `runtime/`,
+      `results/**/runs/` and `gateway/fooled_results.json` stay out. Checked
+      2026-10-09 (`site/data/fooled_results.json` is the curated copy the page
+      reads, not the generated file).
 - [x] **Line endings.** `git ls-files --eol` shows no CRLF files. The ten
       results files committed before `.gitattributes` were renormalized to LF
       on 2026-10-08; their parsed content is unchanged (verified per file).
 
 ## Build and verify
 
-- [ ] All tests pass on a clean checkout:
+- [x] All tests pass on a clean checkout:
       `python -m unittest discover -s tests -v`,
       `python gateway/test_gateway.py`, `python bench/validate_cases.py`.
+      Verified 2026-10-09 on a fresh `git clone --no-local`; CI does the same
+      on every push.
 - [x] CI is green on Ubuntu and Windows.
-- [ ] `docs/REPRODUCE.md` works on a clean machine, at least through
-      `scripts/setup.* --dry-run` and the model-free checks.
-- [ ] **Regenerate the site from data.** Run `site/build_page.py` on the
+- [x] `docs/REPRODUCE.md` works on a clean machine, at least through
+      `scripts/setup.* --dry-run` and the model-free checks. Verified
+      2026-10-09 on a fresh clone with `scripts/setup.ps1 --dry-run` (Windows);
+      CI runs the model-free checks on Ubuntu too.
+- [x] **Regenerate the site from data.** CI rebuilds the page and fails on any
+      byte difference; also verified on a fresh clone 2026-10-09. Run `site/build_page.py` on the
       committed `summary.json` files and commit the rebuilt
       `site/agent-boundary-bench.html`. The committed page must match a fresh
       build byte for byte. Re-scoring a round without its `runs/` folder is

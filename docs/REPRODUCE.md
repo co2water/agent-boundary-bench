@@ -129,8 +129,11 @@ or PASSWORD. To see what a run would record, without writing anything, run
 When you report a result, include `manifest.json`. The R2 and R3 runs used these
 gateway and policy files. agentgate 0.3.0 (tag `agentgate-v0.3.0`) changed
 `gateway/gateway.py` (version strings, the command line, the demo, and starting
-Windows `.cmd` upstreams; the decision code is unchanged), so its hash differs. For
-a byte-exact R2/R3 gateway, check out the public commit before that tag:
+Windows `.cmd` upstreams; the decision code is unchanged), so its hash differs.
+0.3.1 also rewrote the block and reason messages in English and Chinese, so the
+`reason` field in new gateway logs reads differently from the R2/R3 logs; the
+decisions are the same. For a byte-exact R2/R3 gateway, check out the public commit
+before the `agentgate-v0.3.0` tag:
 
 ```
 ee38e8d9e908b2efa2bc7b5f25d48f67fc2778f1ff41b721d98abf1edf754ddd  gateway/gateway.py
