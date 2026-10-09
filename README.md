@@ -28,7 +28,7 @@ key, synthetic data, no money moves). A scripted agent tries to pay; agentgate h
 the payment until you approve it on its local confirmation page:
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway" agentgate demo
 ```
 
 To put it in front of your own MCP server (Claude Code, Claude Desktop, Cursor),
@@ -100,7 +100,7 @@ gateway/      agentgate: a boundary gateway between an agent and its MCP servers
   pyproject.toml      installs this folder as the `agentgate` package (from git; not on PyPI)
   demo.py             `agentgate demo`: a scripted agent tries to pay; you approve or deny
   demo_server.py      the demo's mock payment server (synthetic data)
-  test_gateway.py     74 model-free checks (incl. the security-review regressions, the demo, the audit log and tool-metadata cleaning)
+  test_gateway.py     75 model-free checks (incl. the security-review regressions, the demo, the audit log and tool-metadata cleaning)
   fooled_agent.py     model-free: a scripted already-fooled agent vs. the gateway
   README.md           install and usage
   THREAT_MODEL.md     assets, trust boundaries, defended and undefended threats

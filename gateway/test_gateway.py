@@ -267,6 +267,9 @@ with io.open(bad, "w", encoding="utf-8", newline="\n") as f:
     f.writelines(lines[:3] + lines[4:])
 rc, out = verify(bad)
 check("log: removing a line makes verify-log fail at the next one", rc == 1 and "BROKEN at line 4" in out)
+rc, out = verify("--help")
+check("log: verify-log --help prints usage instead of reading a file named --help",
+      rc == 0 and "usage: agentgate verify-log FILE" in out)
 
 with io.open(log1, "a", encoding="utf-8", newline="\n") as f:
     f.write('{"tool": "cut sho')  # a crash mid-write: no newline

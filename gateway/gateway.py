@@ -75,7 +75,7 @@ def _class_reason(pol):
     c = pol.get("class")
     return "%s-class tool / %s工具" % (CLASS_EN.get(c, "unknown"), CLASS_ZH.get(c, "未知"))
 MAX_LINE = 4 * 1024 * 1024
-VERSION = "0.3.2"
+VERSION = "0.3.3"
 HERE = os.path.dirname(os.path.abspath(__file__))
 DESC_MAX = 2000  # characters of an upstream description or title the agent gets
 TRUNC_NOTE = " …[truncated by agentgate]"
@@ -885,8 +885,13 @@ def main():
             import demo  # repo checkout: python gateway/gateway.py demo
         sys.exit(demo.run(sys.argv[2:]))
     if sys.argv[1:2] == ["verify-log"]:
+        usage = "usage: agentgate verify-log FILE"
+        if sys.argv[2:] in (["-h"], ["--help"]):
+            print(usage + "\n\nRecompute the hash chain of an agentgate --log file. Prints OK with the entry "
+                  "count,\nor BROKEN with the first bad line (exit 1). Exit 2: usage error or unreadable file.")
+            sys.exit(0)
         if len(sys.argv) != 3:
-            print("usage: agentgate verify-log FILE", file=sys.stderr)
+            print(usage, file=sys.stderr)
             sys.exit(2)
         try:
             ok, msg = verify_log(sys.argv[2])

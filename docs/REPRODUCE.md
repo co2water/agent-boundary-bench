@@ -137,7 +137,8 @@ tool metadata, hash-chains the `--log` (new fields `args_sha256`, `seq`, `prev`,
 `hash`, `chain_restart`; `tool`, `verdict` and `reason`, which are all the bench
 reads, are unchanged), hard-denies hard-linked files for the file tools and
 re-checks paths at execution. The decisions for the bench's cases are the same, and
-`gateway/fooled_agent.py` still blocks 10 of 10. For a byte-exact R2/R3 gateway,
+`gateway/fooled_agent.py` still blocks 10 of 10. 0.3.3 only changed the command
+line (`verify-log --help`). For a byte-exact R2/R3 gateway,
 check out the public commit before the `agentgate-v0.3.0` tag:
 
 ```

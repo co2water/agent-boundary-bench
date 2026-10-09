@@ -5,7 +5,7 @@ agentgate instead of the MCP server; agentgate starts the real server behind it 
 decides every `tools/call` from a policy file — not from what the model says.
 Standard library only, one file (`gateway.py`), Python 3.11+.
 
-**Status: prototype (0.3.2). Don't put it in front of real payment or messaging
+**Status: prototype (0.3.3). Don't put it in front of real payment or messaging
 tools yet.** It went through four rounds of adversarial review by separate AI
 reviewer agents, not an independent audit (fix notes at the top of `gateway.py`).
 One finding is still open: the private-address check resolves a host, then urllib
@@ -18,7 +18,7 @@ Needs [uv](https://docs.astral.sh/uv/) (or pipx) and Python 3.11+. No API key, n
 network beyond fetching the code, synthetic data, no money moves:
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway" agentgate demo
 ```
 
 A scripted agent reads a mock inbox (allowed) and then tries to pay "Sunny Cafe"
@@ -29,7 +29,7 @@ returns a fake receipt; press **Deny** or wait, and the agent gets
 without a page. With pipx instead of uv:
 
 ```
-pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
+pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway" agentgate demo
 ```
 
 agentgate lives inside the agent-boundary-bench repo but does not depend on it:
@@ -100,9 +100,9 @@ From git, no PyPI (the name `agentgate` on PyPI belongs to another project; this
 package is not published there):
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate --help
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"   # keeps an `agentgate` command
-pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway" agentgate --help
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway"   # keeps an `agentgate` command
+pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway"
 ```
 
 From a checkout, no install needed:
@@ -127,7 +127,7 @@ Install once, so the client doesn't wait on a git clone at startup (needs `git` 
 PATH):
 
 ```
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.3#subdirectory=gateway"
 ```
 
 Then point the client at `agentgate` and put the real server after `--`. Give each
@@ -281,7 +281,7 @@ Both scripts start the real gateway in front of the bench's mock MCP server
 them from a checkout that has the `bench/` folder next to `gateway/`.
 
 ```
-python gateway/test_gateway.py    # 74 rule checks incl. security-review regressions, the demo, the audit log, tool-metadata cleaning, hard links and check-to-use races; prints PASS/FAIL, exit 1 on any failure
+python gateway/test_gateway.py    # 75 rule checks incl. security-review regressions, the demo, the audit log, tool-metadata cleaning, hard links and check-to-use races; prints PASS/FAIL, exit 1 on any failure
 python gateway/fooled_agent.py    # a scripted, already-fooled agent replays each bench attack; shows which step the gateway stopped
 ```
 
