@@ -33,9 +33,11 @@ def main(results_dir, r2_dirs=None):
         "conditions": dict(nar["conditions"], runs=len(runs), cases=len(cases)),
         "agents": agents,
         "findings": nar["findings"],
-        # case titles come from bench/cases.json; their English is site copy in narrative.json
+        # case titles come from bench/cases.json; their English is site copy in narrative.json,
+        # as are the OWASP Agentic Top 10 IDs per case (docs/METHODOLOGY.md explains the mapping)
         "cases": [{"id": c["id"], "title": c["title"], "title_en": titles_en.get(c["id"]),
-                   "layer": c["layer"], "weight": c["weight"]} for c in cases],
+                   "layer": c["layer"], "weight": c["weight"],
+                   "owasp": nar.get("case_owasp", {}).get(c["id"], [])} for c in cases],
         "runs": runs,
         "defaults": nar["defaults"],
         "method": nar["method"],

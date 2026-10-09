@@ -175,6 +175,7 @@ th, td { text-align: left; padding: 13px 16px; }
 .layer-row th { background: var(--accent-soft); color: var(--accent); font-family: var(--f-mono); font-size: 11.5px; font-weight: 700; letter-spacing: .03em; }
 .case-id { font-family: var(--f-mono); font-size: 11px; color: var(--ink-3); display: block; }
 .case-title { min-width: 210px; font-size: 13.5px; }
+.case-asi { display: inline-block; margin-left: 6px; padding: 1px 5px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-family: var(--f-mono); font-size: 10.5px; letter-spacing: .02em; white-space: nowrap; vertical-align: 1px; }
 .w { font-family: var(--f-mono); color: var(--ink-3); font-size: 12px; text-align: center; }
 .cell { min-width: 148px; }
 .dots { display: inline-flex; gap: 5px; vertical-align: middle; margin-right: 9px; }
@@ -331,9 +332,9 @@ footer { border-top: 1px solid var(--rule); padding-block: 26px 40px; font-famil
       <ol class="concl" id="sum-concl"></ol>
     </section>
     <section>
-      <div class="sec-head"><h2 data-i18n="try.h">60 秒試用閘道</h2><span class="n">agentgate 0.3.1</span></div>
+      <div class="sec-head"><h2 data-i18n="try.h">60 秒試用閘道</h2><span class="n">agentgate 0.3.2</span></div>
       <p class="fine" data-i18n="try.p" style="margin-bottom:12px">一個模擬 agent 嘗試付款，agentgate 把這筆付款扣住，等你在本機確認頁上批准。需要 uv；不需要 API 金鑰，資料是合成的，不會真的扣錢。</p>
-      <div class="try"><pre id="try-cmd">uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo</pre><button type="button" id="try-copy" data-i18n="try.copy">複製</button></div>
+      <div class="try"><pre id="try-cmd">uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo</pre><button type="button" id="try-copy" data-i18n="try.copy">複製</button></div>
       <p class="fine" style="margin-top:12px"><a href="https://github.com/co2water/agent-boundary-bench/blob/main/gateway/README.md#wrap-your-own-mcp-server" data-i18n="try.more">接到你自己的 MCP 伺服器（Claude Code、Claude Desktop、Cursor）→</a></p>
       <p class="fine" data-i18n="try.warn" style="margin-top:6px">它是原型：先不要接真實的付款工具。agent 如果還留著自己的 shell，可以繞過閘道。</p>
     </section>
@@ -458,6 +459,7 @@ const UI = {
     "method.h": "怎麼測的", "mcp.h": "MCP 伺服器 · 按能力邊界分類", "mcp.list": "列表",
     "mcp.gate": "在三家 agent 上加確認閘", "sk.h": "Skill 推薦 · 按它能伸多遠分級", "sk.pick": "推薦",
     "lg.held": "守住", "lg.viol": "越界", "lg.na": "注入未送達", "lg.util": "對照題完成與否", "lg.hover": "滑過圓點看細節",
+    "lg.asi": "對應的 OWASP Top 10 for Agentic Applications（2026）項目",
     "co.model": "模型", "co.reps": "每題", "co.runs": "輪數", "co.cases": "題目", "co.env": "環境", "co.date": "日期",
     "u.times": "次", "u.runs": "輪", "u.cases": "題", "u.of100": "/ 100",
     "bar.A": "A 層 直接要求", "bar.B": "B 層 注入", "bar.U": "可用度",
@@ -489,6 +491,7 @@ const UI = {
     "method.h": "How it's measured", "mcp.h": "MCP servers · by capability boundary", "mcp.list": "List",
     "mcp.gate": "Adding a confirmation gate on the three agents", "sk.h": "Skills · graded by how far each reaches", "sk.pick": "Picks",
     "lg.held": "held", "lg.viol": "overreach", "lg.na": "injection not delivered", "lg.util": "control task done or not", "lg.hover": "hover a dot for detail",
+    "lg.asi": "OWASP Top 10 for Agentic Applications (2026) categories the case exercises",
     "co.model": "Model", "co.reps": "Per case", "co.runs": "Runs", "co.cases": "Cases", "co.env": "Env", "co.date": "Date",
     "u.times": "reps", "u.runs": "runs", "u.cases": "cases", "u.of100": "/ 100",
     "bar.A": "A · direct request", "bar.B": "B · injection", "bar.U": "utility",
@@ -650,7 +653,8 @@ function renderMatrix() {
   for (const [lay, label] of [["A", t("lay.A")], ["B", t("lay.B")], ["C", t("lay.C")]]) {
     html += `<tr class="layer-row"><th colspan="${2 + agents.length}">${label}</th></tr>`;
     for (const c of BENCH.cases.filter((c) => c.layer === lay)) {
-      html += `<tr><td class="case-title"><span class="case-id">${esc(c.id)}</span>${esc(TX(c, "title"))}</td><td class="w">${c.weight || "–"}</td>`;
+      const asi = (c.owasp || []).length ? `<span class="case-asi" title="${esc(t("lg.asi"))}">${c.owasp.map(esc).join(" · ")}</span>` : "";
+      html += `<tr><td class="case-title"><span class="case-id">${esc(c.id)}</span>${esc(TX(c, "title"))}${asi}</td><td class="w">${c.weight || "–"}</td>`;
       for (const a of agents) {
         const runs = BENCH.runs.filter((r) => r.agent === a.id && r.case === c.id).sort((x, y) => x.rep - y.rep);
         const isControl = lay === "C";
@@ -740,6 +744,7 @@ function renderMtxLegend() {
     `<span><span class="dot viol">✕</span>${t("lg.viol")}</span>`,
     `<span><span class="dot na">–</span>${t("lg.na")}</span>`,
     `<span><span class="dot util-ok">✓</span><span class="dot util-no">✕</span>${t("lg.util")}</span>`,
+    `<span><span class="case-asi" style="margin-left:0">ASI</span>${t("lg.asi")}</span>`,
     `<span style="color:var(--ink-3)">${t("lg.hover")}</span>`,
   ].join("");
 }

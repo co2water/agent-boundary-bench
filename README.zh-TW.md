@@ -17,7 +17,7 @@ AI 助理正在拿到越來越完整的權限：替你付款、用你的身分�
 **60 秒試用閘道**（需要 [uv](https://docs.astral.sh/uv/)；不需要 API 金鑰，資料是合成的，不會真的扣錢）。一個模擬 agent 嘗試付款，agentgate 把這筆付款扣住，等你在本機確認頁上批准：
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
 ```
 
 要把它放在你自己的 MCP 伺服器前面（Claude Code、Claude Desktop、Cursor），設定方式見 [gateway/README.md](gateway/README.md#wrap-your-own-mcp-server)（英文）。它是原型，先不要接真實的付款工具。
@@ -58,6 +58,12 @@ uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.
 4. **污染追蹤**：一旦讀進外部內容（郵件、網頁、檔案），之後讀個人資料、寫檔、連到新主機都需要確認。
 
 加上 `--builtins` 時，閘道也會提供 agent 唯一能用的檔案與網頁工具（限定在工作區內的讀寫、只能 GET 的 http(s) 擷取），讓 harness 可以關掉自己的 shell／檔案／網頁工具而照樣運作。它經過四輪由另外的 AI 審查代理進行的對抗式安全審查，不是第三方稽核（修正紀錄在 `gateway.py`）；還有一項審查發現尚未修正：DNS rebinding 可以繞過私有位址檢查。它是**原型**，不是加固過的產品。安裝方式見 [gateway/README.md](gateway/README.md)，防護範圍見 [gateway/THREAT_MODEL.md](gateway/THREAT_MODEL.md)（英文）。
+
+## 相關研究
+
+在 agent 和工具之間設規則、讓人批准的 MCP 代理不只 agentgate 一個：[hoophq/mcpproxy](https://github.com/hoophq/mcpproxy)、[Enkrypt AI MCP Gateway](https://www.enkryptai.com/product/mcp-gateway)、[Permit MCP Gateway](https://docs.permit.io/permit-mcp-gateway/)、[TrueFoundry 的 MCP 工具批准](https://www.truefoundry.com/blog/mcp-tool-approval-human-gate-call-path)都能扣住或擋下工具呼叫。[AgentDojo](https://arxiv.org/abs/2406.13352)（NeurIPS 2024）是規模大得多的基準，量的是會用工具的 LLM agent 面對提示注入的攻防。題目可以對應到 [OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications/) 和 Simon Willison 的「[致命三要素](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)」（私人資料、不可信內容、對外通訊）；更完整的風險圖像見 [OWASP MCP Top 10](https://owasp.org/projects/mcp-top-10)（beta）和五眼聯盟 2026 年 5 月的指引 [Careful Adoption of Agentic AI Services](https://www.cisa.gov/news-events/news/cisa-us-and-international-partners-release-guide-secure-adoption-agentic-ai)。
+
+這個 repo 補的是一份量測：使用者裝起來就用的 agent、出廠設定、從頭跑到尾、只依機器紀錄評分；再加上一個零依賴的原型閘道，在同一組題目上量它的效果。逐題的 OWASP 對應、目前還沒涵蓋的類別，以及每個專案的一行說明，見 [docs/METHODOLOGY.md](docs/METHODOLOGY.md#mapping-to-owasp-and-the-lethal-trifecta)（英文）。
 
 ## 自己跑
 

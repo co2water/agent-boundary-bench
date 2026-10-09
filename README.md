@@ -28,7 +28,7 @@ key, synthetic data, no money moves). A scripted agent tries to pay; agentgate h
 the payment until you approve it on its local confirmation page:
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
 ```
 
 To put it in front of your own MCP server (Claude Code, Claude Desktop, Cursor),
@@ -41,8 +41,8 @@ to is a local loopback sink. See [Safety](#safety).
 
 ## Documentation
 
-- [docs/METHODOLOGY.md](docs/METHODOLOGY.md): research question, cases, scoring,
-  rounds and limitations
+- [docs/METHODOLOGY.md](docs/METHODOLOGY.md): research question, cases and their
+  OWASP mapping, scoring, rounds, related work and limitations
 - [docs/REPRODUCE.md](docs/REPRODUCE.md): install the pinned agents and re-run a round
 - [gateway/README.md](gateway/README.md): install and use agentgate
 - [gateway/THREAT_MODEL.md](gateway/THREAT_MODEL.md): what agentgate defends and what it does not
@@ -100,11 +100,11 @@ gateway/      agentgate: a boundary gateway between an agent and its MCP servers
   pyproject.toml      installs this folder as the `agentgate` package (from git; not on PyPI)
   demo.py             `agentgate demo`: a scripted agent tries to pay; you approve or deny
   demo_server.py      the demo's mock payment server (synthetic data)
-  test_gateway.py     49 model-free checks (incl. the security-review regressions and the demo)
+  test_gateway.py     74 model-free checks (incl. the security-review regressions, the demo, the audit log and tool-metadata cleaning)
   fooled_agent.py     model-free: a scripted already-fooled agent vs. the gateway
   README.md           install and usage
   THREAT_MODEL.md     assets, trust boundaries, defended and undefended threats
-tests/        stdlib unittest: scoring rules, aggregation, results consistency
+tests/        stdlib unittest: scoring rules, aggregation, results consistency, approval-page integrity
 scripts/      setup.ps1 / setup.sh: install the pinned agents (--dry-run to preview)
 docker/       Dockerfile and notes for a Linux run
 docs/         METHODOLOGY.md, REPRODUCE.md
@@ -152,6 +152,32 @@ fix notes in `gateway.py`); one finding is still open: a DNS rebind can defeat t
 private-address check. It is a **prototype**, not a
 hardened product. See [gateway/README.md](gateway/README.md) to install it and
 [gateway/THREAT_MODEL.md](gateway/THREAT_MODEL.md) for its scope.
+
+## Related work
+
+agentgate is not the only MCP proxy with policy or human approval:
+[hoophq/mcpproxy](https://github.com/hoophq/mcpproxy),
+[Enkrypt AI MCP Gateway](https://www.enkryptai.com/product/mcp-gateway),
+[Permit MCP Gateway](https://docs.permit.io/permit-mcp-gateway/) and
+[TrueFoundry's MCP tool approvals](https://www.truefoundry.com/blog/mcp-tool-approval-human-gate-call-path)
+all sit between an agent and its tools and can hold or block calls.
+[AgentDojo](https://arxiv.org/abs/2406.13352) (NeurIPS 2024) is a much larger
+benchmark of prompt injection attacks and defenses for tool-using LLM agents.
+The cases map onto the
+[OWASP Top 10 for Agentic Applications](https://genai.owasp.org/resource/owasp-top-10-for-agentic-applications/)
+and Simon Willison's
+[lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/);
+the [OWASP MCP Top 10](https://owasp.org/projects/mcp-top-10) (beta) and the
+May 2026 Five Eyes guidance
+[Careful Adoption of Agentic AI Services](https://www.cisa.gov/news-events/news/cisa-us-and-international-partners-release-guide-secure-adoption-agentic-ai)
+cover the wider risk picture.
+
+What this repository adds is a measurement: end-user agents on factory
+defaults, run end to end and scored only from machine logs, and the effect of a
+zero-dependency prototype gateway on those same cases. The per-case OWASP
+mapping, the gaps the cases do not cover yet, and one-line descriptions of each
+project are in
+[docs/METHODOLOGY.md](docs/METHODOLOGY.md#mapping-to-owasp-and-the-lethal-trifecta).
 
 ## Running it
 

@@ -5,7 +5,7 @@ agentgate instead of the MCP server; agentgate starts the real server behind it 
 decides every `tools/call` from a policy file — not from what the model says.
 Standard library only, one file (`gateway.py`), Python 3.11+.
 
-**Status: prototype (0.3.1). Don't put it in front of real payment or messaging
+**Status: prototype (0.3.2). Don't put it in front of real payment or messaging
 tools yet.** It went through four rounds of adversarial review by separate AI
 reviewer agents, not an independent audit (fix notes at the top of `gateway.py`).
 One finding is still open: the private-address check resolves a host, then urllib
@@ -18,7 +18,7 @@ Needs [uv](https://docs.astral.sh/uv/) (or pipx) and Python 3.11+. No API key, n
 network beyond fetching the code, synthetic data, no money moves:
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
 ```
 
 A scripted agent reads a mock inbox (allowed) and then tries to pay "Sunny Cafe"
@@ -29,7 +29,7 @@ returns a fake receipt; press **Deny** or wait, and the agent gets
 without a page. With pipx instead of uv:
 
 ```
-pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate demo
+pipx run --spec "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate demo
 ```
 
 agentgate lives inside the agent-boundary-bench repo but does not depend on it:
@@ -56,15 +56,53 @@ With `--builtins` agentgate also serves the only file and web tools the agent ge
 HTTP(S) GET only), so a harness can switch off its own shell, file and web tools and
 still work.
 
+The file tools refuse a file with more than one hard link: `realpath` cannot see where
+its other names are, so the workspace and sensitive-path checks would judge the wrong
+name. An approval can wait for minutes, so just before a file tool runs, agentgate
+resolves the path again and runs the same hard-deny checks. The path must still be the
+one that was judged and shown on the page, or the call is refused. It then opens the
+file and checks the open handle: it must be a regular file with one link, the same
+file as the one at the resolved path, and not reached through a link swapped in after
+the check. A write truncates the file only after these checks. On POSIX a symlink at
+the final path is refused with `O_NOFOLLOW`. Windows has no `O_NOFOLLOW`, so there
+the file ids of the path before the open, the open handle and the path after the
+open are compared, and a new file is created with `O_EXCL`. Remaining gap: a link
+swapped in at a new file's name or its parent folder in the instant between the
+re-check and the open may make the open create an empty file at the link's target.
+The write is then refused and nothing is written into it. The rule also denies
+legitimate hard-linked files in a workspace, such as a pnpm `node_modules` (hard
+links into its store), objects from `git clone --local`, and `cp -l` or
+snapshot-style backups.
+
+**Tool metadata is cleaned.** A server's tool list goes to the model, so it can carry
+text a person reviewing the tools never sees. Before an upstream tool is listed,
+agentgate removes invisible characters from every string in it except the name
+(description, title, annotations, every string and key in `inputSchema`): format
+characters (zero-width, bidi controls, the U+E0000 tag block), control characters
+other than newline and tab, lone surrogates, and variation selectors (one text/emoji
+selector right after a non-ASCII character stays, so an emoji keeps its style). If anything was removed, the
+description ends with `[agentgate: hidden characters removed]`. Descriptions and
+titles longer than 2,000 characters are cut, ending `…[truncated by agentgate]`.
+Tool **names** must follow the MCP convention: 1 to 128 letters, digits, `_`, `.` or
+`-`. A name with anything else (hidden characters, line breaks, quotes, spaces) could
+pose as another tool or draw a fake line on the approval page. Such a tool is not
+listed, a call to it gets "no such tool", and agentgate names it on stderr. Cleaning
+removes hidden text only: visible instructions in a description still reach the model,
+and tool results are not cleaned. Some legitimate text is also cleaned and marked:
+emoji joined with a zero-width joiner, a keycap selector after an ASCII digit, the
+zero-width non-joiner in Persian or Indic text, and direction marks in right-to-left
+text. Names outside the spec's recommended character set that some servers still use
+(with `/`, `:` or non-ASCII letters) are dropped.
+
 ## Install or run
 
 From git, no PyPI (the name `agentgate` on PyPI belongs to another project; this
 package is not published there):
 
 ```
-uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway" agentgate --help
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"   # keeps an `agentgate` command
-pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"
+uvx --from "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway" agentgate --help
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"   # keeps an `agentgate` command
+pip install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"
 ```
 
 From a checkout, no install needed:
@@ -89,7 +127,7 @@ Install once, so the client doesn't wait on a git clone at startup (needs `git` 
 PATH):
 
 ```
-uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.1#subdirectory=gateway"
+uv tool install "git+https://github.com/co2water/agent-boundary-bench@agentgate-v0.3.2#subdirectory=gateway"
 ```
 
 Then point the client at `agentgate` and put the real server after `--`. Give each
@@ -149,9 +187,10 @@ within it, or lower `--approve-wait` so agentgate denies first.
 | `--approve-port N` | Serve the approval page on `http://127.0.0.1:N/`. Default 0 = no approver: every `confirm` becomes deny. If the port is already in use, agentgate exits with an error. |
 | `--approve-wait SEC` | How long a call waits for a decision on the page. Default 120. Timeout = deny. |
 | `--no-open` | Don't open the approval page in a browser when a call is held (it still logs the address on stderr). |
-| `--log FILE` | Append one JSON line per tool call: `tool`, `class`, `verdict`, `reason`, `approved`, `ts`, `tainted`. |
+| `--log FILE` | Append one hash-chained JSON line per tool call: `tool`, `class`, `verdict`, `reason`, `approved`, `args_sha256`, `ts`, `tainted`, `seq`, `prev`, `hash`. Arguments themselves are not logged. See [Audit log](#audit-log). |
 | `-- CMD ...` | Required. The upstream MCP server command (stdio). Everything after `--` is passed through. |
 | `demo` | Instead of the flags above: run the demo (`--no-approver`, `--port N`, `--wait SEC`, `--no-browser`). |
+| `verify-log FILE` | Instead of the flags above: check a `--log` file's hash chain. Exit 0 if intact, 1 at the first broken line. |
 | `--version` | Print the version. |
 
 agentgate speaks MCP over stdio (JSON-RPC 2.0, one message per line) and answers
@@ -182,8 +221,9 @@ See `policy.assistant.json` (the everyday-assistant role) and `policy.bench.json
 | `servers` | object | `servers.<name>.<tool>` = `{ "class": ..., "untrusted_output": bool, "pii": bool, "write": bool }`. `untrusted_output` taints the session when the tool is called; `pii` marks personal data (blocked after taint, and its output may not leave in a URL). |
 | `_doc` | string | Comment; ignored. |
 
-Hard denies (sensitive path, executable write, `::$DATA` or UNC path, non-HTTP URL,
-private address) apply before the class verdict and cannot be approved.
+Hard denies (sensitive path, executable write, `::$DATA` or UNC path, a file with more
+than one hard link, non-HTTP URL, private address) apply before the class verdict and
+cannot be approved.
 
 ## Approval page
 
@@ -191,12 +231,48 @@ Run with `--approve-port 8766`; agentgate opens `http://127.0.0.1:8766/` when a 
 held (or open it yourself). The page is in English and Chinese and refreshes
 every 3 seconds and lists each call waiting for you: the tool, every argument as
 sent (resolved file paths, payee, amount; control and bidi characters shown as
-escapes), the reason it needs you, and an argument fingerprint. **Approve once**
+escapes, runs of 4 or more spaces shown as `␠×N`, long lines wrapped), the reason it
+needs you, and an argument fingerprint. The tool name is escaped the same way. Write
+content longer than 2,000 characters is cut on the page, followed by its full length
+and the SHA-256 of the full text. **Approve once**
 releases exactly that one call; **Deny** or no answer within `--approve-wait`
 blocks it. Each pending call has a random id, the form carries a CSRF token, and the
 page refuses requests whose `Host`, `Origin` or `Sec-Fetch-Site` are not local
 (DNS rebinding, cross-site posts). The agent receives `BLOCKED_BY_AGENTGATE: ...`
 for a blocked call.
+
+## Audit log
+
+`--log FILE` appends one JSON line per `tools/call`:
+
+| Field | Meaning |
+|---|---|
+| `tool`, `class`, `verdict`, `reason`, `approved`, `tainted`, `ts` | The decision, as before 0.3.2. `approved` is `true`/`false` for a `confirm` call, otherwise `null`. |
+| `args_sha256` | SHA-256 of `[tool, arguments]` (sorted-key JSON): the same fingerprint the approval page shows, so a logged approval can be matched to the call the user saw. The arguments are never written (they may be private). |
+| `seq` | 1, 2, 3 ... for each entry this agentgate process wrote. |
+| `prev` | `hash` of the line before it in the file (64 zeros for the first). |
+| `hash` | SHA-256 of the entry's canonical JSON (sorted keys, no spaces) without `hash`, so it covers `prev`. |
+| `chain_restart` | Only present, `true`, when the file's last line was cut short, garbled or had no hash: the entry starts a new chain (`prev` = zeros). |
+
+A restarted agentgate continues the same chain from the file's last line. Give each
+concurrently running agentgate its own `--log` file: there is no file lock, so two
+processes appending at the same moment can fork the chain, and `verify-log` will
+then report it as broken. Check a log with:
+
+```
+agentgate verify-log gateway.jsonl     # or: python gateway/gateway.py verify-log gateway.jsonl
+```
+
+It prints `OK: N entries, hash chain intact; last hash ...` (and any chain restarts),
+or `BROKEN at line L (seq S): ...` for the first entry that was edited, removed,
+inserted or reordered, and then exits 1. The hash covers each entry's content, not
+its byte layout (key order and spacing).
+
+The log is **tamper-evident, not tamper-proof.** There is no secret key: anyone who
+can rewrite the whole file can rebuild a valid chain, and lines cut off the end
+leave no trace. To make that detectable, copy the `last hash` that `verify-log`
+prints to somewhere the agent cannot write. A log written by 0.3.1 or earlier has
+no hashes and fails at line 1; start a new file.
 
 ## Tests (no model, no API key)
 
@@ -205,11 +281,13 @@ Both scripts start the real gateway in front of the bench's mock MCP server
 them from a checkout that has the `bench/` folder next to `gateway/`.
 
 ```
-python gateway/test_gateway.py    # 49 rule checks incl. security-review regressions and the demo; prints PASS/FAIL, exit 1 on any failure
+python gateway/test_gateway.py    # 74 rule checks incl. security-review regressions, the demo, the audit log, tool-metadata cleaning, hard links and check-to-use races; prints PASS/FAIL, exit 1 on any failure
 python gateway/fooled_agent.py    # a scripted, already-fooled agent replays each bench attack; shows which step the gateway stopped
 ```
 
-`test_gateway.py` binds `127.0.0.1:8765` (a throwaway local web page, the same port
-as the bench sink, so do not run it during a bench round), `127.0.0.1:8799` (the
-approval page) and `127.0.0.1:8797` (the demo's approval page). `fooled_agent.py` writes `gateway/fooled_results.json`
+`test_gateway.py` also runs the gateway in front of `test_upstream_poison.py`, a
+test-only server whose tool list carries invisible characters (synthetic text only).
+It binds `127.0.0.1:8765` (a throwaway local web page, the same port
+as the bench sink, so do not run it during a bench round), `127.0.0.1:8799` and
+`127.0.0.1:8795` (approval pages) and `127.0.0.1:8797` (the demo's approval page). `fooled_agent.py` writes `gateway/fooled_results.json`
 (git-ignored).

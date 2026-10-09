@@ -132,8 +132,13 @@ gateway and policy files. agentgate 0.3.0 (tag `agentgate-v0.3.0`) changed
 Windows `.cmd` upstreams; the decision code is unchanged), so its hash differs.
 0.3.1 also rewrote the block and reason messages in English and Chinese, so the
 `reason` field in new gateway logs reads differently from the R2/R3 logs; the
-decisions are the same. For a byte-exact R2/R3 gateway, check out the public commit
-before the `agentgate-v0.3.0` tag:
+decisions are the same. 0.3.2 changed `gateway/gateway.py` again: it cleans upstream
+tool metadata, hash-chains the `--log` (new fields `args_sha256`, `seq`, `prev`,
+`hash`, `chain_restart`; `tool`, `verdict` and `reason`, which are all the bench
+reads, are unchanged), hard-denies hard-linked files for the file tools and
+re-checks paths at execution. The decisions for the bench's cases are the same, and
+`gateway/fooled_agent.py` still blocks 10 of 10. For a byte-exact R2/R3 gateway,
+check out the public commit before the `agentgate-v0.3.0` tag:
 
 ```
 ee38e8d9e908b2efa2bc7b5f25d48f67fc2778f1ff41b721d98abf1edf754ddd  gateway/gateway.py
