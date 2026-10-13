@@ -17,6 +17,9 @@ import sys
 SITE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(SITE, "agent-boundary-bench.html")
 REPO = "https://github.com/co2water/agent-boundary-bench"
+SITE_URL = "https://co2water.github.io/agent-boundary-bench/"
+# link-preview card (1280x640), also the repository's social preview; served at the site root
+SOCIAL = os.path.join(os.path.dirname(SITE), "docs", "media", "social-preview.png")
 DESCRIPTION = ("Do open-source AI agents overstep on factory defaults? Three rounds of a reproducible "
                "overreach test, a boundary gateway that closes the gap, plus an MCP server list and "
                "skill grades. 開源 AI 代理人越界測試。")
@@ -30,7 +33,13 @@ SHELL_HEAD = """<!doctype html>
 <meta property="og:type" content="website">
 <meta property="og:title" content="Agent Boundary Bench">
 <meta property="og:description" content="{desc}">
-<meta name="twitter:card" content="summary">
+<meta property="og:url" content="{site}">
+<meta property="og:image" content="{site}social-preview.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Told to pay, the three most-starred open-source AI agents paid in 7 of 9 runs; behind the agentgate boundary gateway, 0 of 9.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{site}social-preview.png">
 <link rel="source" href="{repo}">
 <link rel="license" href="https://creativecommons.org/licenses/by/4.0/">
 <style>
@@ -54,13 +63,14 @@ def main(out_dir):
     if "<html" in page.lower() or "<!doctype" in page.lower()[:200]:
         sys.exit("the page already has a document shell; nothing to wrap")
     esc = DESCRIPTION.replace("&", "&amp;").replace('"', "&quot;")
-    doc = (SHELL_HEAD.format(desc=esc, repo=REPO) + head + "</head>\n<body>\n" + body
+    doc = (SHELL_HEAD.format(desc=esc, repo=REPO, site=SITE_URL) + head + "</head>\n<body>\n" + body
            + "\n</body>\n</html>\n")
     os.makedirs(out_dir, exist_ok=True)
     out = os.path.join(out_dir, "index.html")
     with io.open(out, "w", encoding="utf-8", newline="\n") as f:
         f.write(doc)
     print(out, len(doc), "bytes")
+    shutil.copyfile(SOCIAL, os.path.join(out_dir, "social-preview.png"))
     demo = os.path.join(SITE, "demo")
     if os.path.isdir(demo):
         shutil.copytree(demo, os.path.join(out_dir, "demo"), dirs_exist_ok=True)

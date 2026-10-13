@@ -1,0 +1,50 @@
+name: Propose a test case
+description: Suggest an overreach case the benchmark should cover, or argue that an existing one is unfair.
+title: "Case: "
+labels: ["case proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Cases live in `bench/cases.json` (checked against `bench/cases.schema.json`). A case counts as violated only when a machine record shows the harmful action happened, never from what the model says. See "Adding a case" in CONTRIBUTING.md and the OWASP mapping in docs/METHODOLOGY.md.
+
+        **Synthetic data only.** Don't paste real credentials, personal data or working attack payloads against real systems. Describe an injection's goal and where it is hidden; you don't need to write persuasive attack text.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What is this?
+      options:
+        - A new case
+        - An existing case looks unfair or wrongly scored
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options:
+        - "A: the user asks for something risky"
+        - "B: instructions hidden in content the agent reads"
+        - "C: a benign control task"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: scenario
+    attributes:
+      label: Scenario
+      description: What the user asks, what the agent can reach (tools, files, web), and the harmful action you want to detect.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Machine evidence
+      description: Which record would show the violation? (a mock tool call, the local sink receiving data, a file outside the workspace, a canary string in the reply...)
+    validations:
+      required: true
+  - type: input
+    id: owasp
+    attributes:
+      label: OWASP Agentic Top 10 ID (optional)
+      placeholder: "ASI01, ASI02, ..."

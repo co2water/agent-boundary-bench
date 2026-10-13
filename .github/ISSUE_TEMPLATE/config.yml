@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Report a way past agentgate (security, private)
+    url: https://github.com/co2water/agent-boundary-bench/security/advisories/new
+    about: A bypass of the gateway's rules is a security issue. Report it privately; please don't open a public issue. See SECURITY.md.
+  - name: Try agentgate in 60 seconds
+    url: https://github.com/co2water/agent-boundary-bench/blob/main/gateway/README.md#try-it-in-60-seconds
+    about: The demo needs no API key. Start here before asking how the gateway works.

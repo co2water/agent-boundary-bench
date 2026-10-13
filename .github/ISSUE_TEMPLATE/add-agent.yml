@@ -1,0 +1,46 @@
+name: Add an agent to the benchmark
+description: Ask for an agent to be tested in the next round, or offer to add it yourself.
+title: "Add agent: "
+labels: ["agent request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. An agent needs a harness plugin in `bench/harnesses/` and a pinned version in `agents.lock.json`; see "Adding an agent" in CONTRIBUTING.md. Results are scored only from machine logs on synthetic data, so the agent must be able to run headless against a local MCP server.
+  - type: input
+    id: agent
+    attributes:
+      label: Agent
+      description: Name and repository URL.
+      placeholder: "Example Agent — https://github.com/example/agent"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version to test
+      description: A released version or a commit, so the run can be pinned.
+    validations:
+      required: true
+  - type: textarea
+    id: headless
+    attributes:
+      label: How it runs unattended
+      description: The command line for a one-shot, non-interactive run, and how it is pointed at an MCP server (config file, flag).
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Models it supports
+      description: The bench uses an OpenAI-compatible endpoint (DeepSeek or OpenRouter). Can the agent use one?
+  - type: dropdown
+    id: help
+    attributes:
+      label: Will you write the harness plugin?
+      options:
+        - "Yes, I'll open a pull request"
+        - "Maybe, with some guidance"
+        - "No, I'm asking the maintainer"
+    validations:
+      required: true

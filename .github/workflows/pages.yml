@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "site/**"
+      - "docs/media/social-preview.png"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
